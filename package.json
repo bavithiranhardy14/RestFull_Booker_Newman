@@ -1,0 +1,15 @@
+{
+  "name": "restfull-booker-newman",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Newman runner for Restful Booker Postman collection",
+  "scripts": {
+    "test:api": "newman run \"postman/collections/Restful Booker - Full CRUD + Auth.postman_collection.json\" -e \"postman/environments/RestfulBooker - DEV.postman_environment.json\" -r cli",
+    "report": "newman run \"postman/collections/Restful Booker - Full CRUD + Auth.postman_collection.json\" -e \"postman/environments/RestfulBooker - DEV.postman_environment.json\" --bail --timeout-request 15000 --delay-request 100 -r cli,json,junit,htmlextra --reporter-json-export \"newman/reports/newman-report.json\" --reporter-junit-export \"newman/reports/newman-junit.xml\" --reporter-htmlextra-export \"newman/reports/newman-report.html\"",
+    "report:ci": "newman run \"postman/collections/Restful Booker - Full CRUD + Auth.postman_collection.json\" -e \"postman/environments/RestfulBooker - DEV.postman_environment.json\" --timeout-request 20000 -r cli,junit --reporter-junit-export \"newman/reports/newman-junit.xml\""
+  },
+  "devDependencies": {
+    "newman": "^6.1.3",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}

@@ -1,0 +1,22 @@
+# Node dependencies
+node_modules/
+
+# Newman generated outputs
+newman/reports/
+newman/logs/
+
+# Runtime logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS/Editor noise
+.DS_Store
+Thumbs.db
+.vscode/
