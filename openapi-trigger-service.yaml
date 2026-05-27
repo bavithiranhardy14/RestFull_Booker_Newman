@@ -213,6 +213,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /runs/{runId}/artifacts/all.zip:
+    get:
+      summary: Download all available run artifacts as ZIP
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - $ref: '#/components/parameters/RunIdPath'
+      responses:
+        '200':
+          description: ZIP file with available artifacts
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Run or artifacts not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   parameters:
@@ -340,6 +362,8 @@ components:
         html:
           type: string
           nullable: true
+        zip:
+          type: string
     ArtifactsAvailable:
       type: object
       properties:

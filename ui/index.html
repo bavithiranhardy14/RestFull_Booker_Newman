@@ -1,542 +1,1578 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Newman Trigger Dashboard</title>
+  <title>Newman Enterprise Console</title>
   <style>
     :root {
-      --bg: #f5f7fb;
+      --bg: #f2f6f8;
       --panel: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
+      --panel-2: #f9fcfd;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dce6ec;
       --accent: #0d9488;
       --accent-2: #0f766e;
-      --danger: #b91c1c;
-      --success: #15803d;
-      --border: #e5e7eb;
-      --chip: #eff6ff;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --shadow: 0 10px 28px rgba(2, 8, 23, 0.08);
+      --side: #0f172a;
+      --side-text: #e2e8f0;
+      --side-muted: #94a3b8;
     }
+
+    html[data-theme="dark"] {
+      --bg: #0a1116;
+      --panel: #101b23;
+      --panel-2: #172631;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #243748;
+      --accent: #2dd4bf;
+      --accent-2: #14b8a6;
+      --success: #86efac;
+      --danger: #fca5a5;
+      --warning: #fdba74;
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      --side: #0b141b;
+      --side-text: #e2e8f0;
+      --side-muted: #94a3b8;
+    }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.2), transparent 35%), var(--bg);
       color: var(--text);
-      background: radial-gradient(circle at top left, #ecfeff 0%, var(--bg) 45%);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
-    .wrap {
-      max-width: 1200px;
-      margin: 24px auto;
-      padding: 0 16px 24px;
+
+    .app {
+      min-height: 100vh;
       display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 16px;
+      grid-template-columns: 250px 1fr;
     }
-    .card {
+
+    .side {
+      background: linear-gradient(180deg, var(--side), #111d28);
+      color: var(--side-text);
+      border-right: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 18px 14px;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .sub {
+      color: var(--side-muted);
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .menu {
+      display: grid;
+      gap: 8px;
+    }
+
+    .menu button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      background: rgba(148, 163, 184, 0.08);
+      color: var(--side-text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .menu button.active {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.4);
+    }
+
+    .side-footer {
+      margin-top: 16px;
+      padding: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--side-muted);
+    }
+
+    .main {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      max-width: 1480px;
+    }
+
+    .top {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 20px;
-    }
-    h2 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-    .sub {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-    .row {
-      display: grid;
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 10px;
     }
-    .row.cols-2 { grid-template-columns: 1fr 1fr; }
-    label {
+
+    .title {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .badge {
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 4px;
-      display: inline-block;
     }
-    input, select, button, textarea {
-      width: 100%;
+
+    .layout {
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 13px;
-      font-family: inherit;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 12px;
     }
-    button {
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .btn.primary {
       background: var(--accent);
       color: #fff;
       border: 0;
-      cursor: pointer;
-      font-weight: 600;
     }
-    button:hover { background: var(--accent-2); }
-    button.secondary {
-      background: #f3f4f6;
-      color: #111827;
-      border: 1px solid var(--border);
-    }
-    .status {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      background: #f3f4f6;
-      color: #111827;
-    }
-    .status.passed { background: #dcfce7; color: var(--success); }
-    .status.failed { background: #fee2e2; color: var(--danger); }
-    .status.running { background: #fef3c7; color: #92400e; }
-    .kpis {
+
+    .btn.primary:hover { background: var(--accent-2); }
+
+    .context-grid,
+    .field-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin: 10px 0;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
     }
-    .kpi {
-      background: #f8fafc;
+
+    .two-col {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .field {
+      display: grid;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    input, select, textarea {
+      width: 100%;
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px;
-      text-align: center;
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
     }
-    .kpi .v { font-size: 18px; font-weight: 700; }
-    .kpi .k { color: var(--muted); font-size: 11px; }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
     }
+
     th, td {
-      text-align: left;
       padding: 8px;
       border-bottom: 1px solid var(--border);
+      text-align: left;
       vertical-align: top;
     }
-    th { color: var(--muted); font-weight: 600; }
-    tr:hover { background: #f8fafc; cursor: pointer; }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      background: rgba(148, 163, 184, 0.08);
+    }
+
+    tr:hover {
+      background: rgba(45, 212, 191, 0.08);
+      cursor: pointer;
+    }
+
     .mono {
       font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
-      font-size: 12px;
       word-break: break-all;
     }
-    .links a {
+
+    .status {
       display: inline-block;
-      margin-right: 8px;
-      margin-bottom: 6px;
-      color: #0f766e;
-      text-decoration: none;
-      font-size: 12px;
-      background: var(--chip);
       padding: 4px 8px;
-      border-radius: 8px;
-      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-    .fail {
-      margin: 8px 0;
+
+    .status.running { color: var(--warning); background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.35); }
+    .status.passed { color: var(--success); background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.35); }
+    .status.failed { color: var(--danger); background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.35); }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 10px;
       padding: 8px;
+      text-align: center;
+      background: rgba(148, 163, 184, 0.08);
+    }
+
+    .kpi .v { font-size: 18px; font-weight: 700; }
+    .kpi .k { font-size: 11px; color: var(--muted); }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .run-id-link {
+      border: 0;
+      padding: 0;
+      margin: 0;
+      color: var(--accent);
+      background: transparent;
+      text-decoration: underline;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .project-tile {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(148, 163, 184, 0.08));
+      padding: 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    html[data-theme="dark"] .project-tile {
+      background: linear-gradient(180deg, rgba(23, 38, 49, 0.96), rgba(45, 212, 191, 0.08));
+    }
+
+    .project-tile.active {
+      border-color: rgba(45, 212, 191, 0.6);
+      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.3), var(--shadow);
+    }
+
+    .section-note {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(148, 163, 184, 0.08);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .snippet-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.95);
+      color: #e2e8f0;
+      padding: 12px;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 150px;
+    }
+
+    .failure {
       border-left: 3px solid #ef4444;
-      background: #fef2f2;
+      border-radius: 6px;
+      background: rgba(239, 68, 68, 0.14);
+      padding: 8px;
+      margin-bottom: 8px;
       font-size: 12px;
     }
-    .tiny { font-size: 11px; color: var(--muted); }
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .toolbar > * { flex: 1; }
-    @media (max-width: 980px) {
-      .wrap { grid-template-columns: 1fr; }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 1fr; }
+      .side { border-right: 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
+      .field-grid, .two-col, .context-grid { grid-template-columns: 1fr; }
       .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <section class="card">
-      <h1>Newman Dashboard</h1>
-      <div class="sub">Trigger runs and monitor API test history.</div>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">Newman Enterprise Console</div>
+      <div class="sub">Trigger, monitor, and audit test runs</div>
 
-      <div class="row">
+      <div class="menu">
+        <button class="menu-btn active" data-page="homePage">Home</button>
+        <button class="menu-btn" data-page="historyPage">History</button>
+        <button class="menu-btn" data-page="projectsPage">Projects</button>
+        <button class="menu-btn" data-page="collectionsPage">Collections</button>
+        <button class="menu-btn" data-page="environmentsPage">Environments</button>
+        <button class="menu-btn" data-page="presetsPage">Trigger Presets</button>
+        <button class="menu-btn" data-page="triggerPage">Release Trigger</button>
+        <button class="menu-btn" data-page="settingsPage">Settings</button>
+      </div>
+
+      <div class="side-footer" id="globalSummary">Health: unknown</div>
+    </aside>
+
+    <main class="main">
+      <div class="top">
         <div>
-          <label>Base URL</label>
-          <input id="baseUrl" value="http://localhost:8080" />
+          <div class="title" id="pageTitle">Home</div>
+          <div class="badge" id="pageHint">Running runs and latest status</div>
         </div>
+        <button class="btn" id="themeToggle">Toggle Theme</button>
       </div>
 
-      <div class="row">
-        <div>
-          <label>Trigger Token</label>
-          <input id="token" placeholder="x-trigger-token" />
+      <section class="card">
+        <div class="context-grid">
+          <div class="field">
+            <label for="globalProjectSelect">Active Project Context</label>
+            <select id="globalProjectSelect"></select>
+          </div>
+          <div class="field">
+            <label for="historyProjectFilter">History Project Filter</label>
+            <select id="historyProjectFilter"></select>
+          </div>
         </div>
-      </div>
-
-      <div class="row cols-2">
-        <div>
-          <label>Mode</label>
-          <select id="mode">
-            <option value="ci">ci</option>
-            <option value="full" selected>full</option>
-          </select>
+        <div class="actions">
+          <button class="btn" id="globalReloadBtn">Reload Context</button>
+          <span class="muted" id="assetSummary">Choose a project to load collections, environments, and presets.</span>
         </div>
-        <div>
-          <label>Wait Timeout (sec)</label>
-          <input id="waitTimeoutSec" type="number" value="180" min="1" />
-        </div>
-      </div>
+      </section>
 
-      <div class="row">
-        <label><input type="checkbox" id="waitForCompletion" checked /> Wait for completion in same call</label>
-      </div>
-
-      <div class="row cols-2">
-        <button id="triggerBtn">Run Tests</button>
-        <button id="healthBtn" class="secondary">Health</button>
-      </div>
-
-      <div class="row">
-        <div id="healthState" class="tiny">Health: unknown</div>
-        <div id="triggerMsg" class="tiny"></div>
-      </div>
-
-      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;" />
-
-      <h2>Filters</h2>
-      <div class="toolbar">
-        <select id="statusFilter">
-          <option value="">status: all</option>
-          <option value="running">running</option>
-          <option value="passed">passed</option>
-          <option value="failed">failed</option>
-        </select>
-        <select id="modeFilter">
-          <option value="">mode: all</option>
-          <option value="ci">ci</option>
-          <option value="full">full</option>
-        </select>
-        <select id="sortFilter">
-          <option value="desc" selected>newest</option>
-          <option value="asc">oldest</option>
-        </select>
-      </div>
-
-      <div class="toolbar">
-        <input id="limit" type="number" value="25" min="1" max="200" />
-        <input id="offset" type="number" value="0" min="0" />
-      </div>
-
-      <div class="row cols-2">
-        <button id="refreshBtn" class="secondary">Refresh Runs</button>
-        <button id="clearBtn" class="secondary">Clear Detail</button>
-      </div>
-
-      <div class="tiny" id="listMeta"></div>
-    </section>
-
-    <section class="card">
-      <h2>Run History</h2>
-      <table id="runsTable">
-        <thead>
-          <tr>
-            <th>Run ID</th>
-            <th>Status</th>
-            <th>Mode</th>
-            <th>Assertions</th>
-            <th>Started</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;" />
-
-      <h2>Run Detail</h2>
-      <div id="detailEmpty" class="tiny">Select a run to view details.</div>
-      <div id="detailBox" style="display:none;">
-        <div class="mono" id="detailRunId"></div>
-        <div style="margin:6px 0;">
-          <span id="detailStatus" class="status">unknown</span>
+      <section id="homePage" class="page active layout">
+        <div class="card">
+          <h2>Current Running Runs</h2>
+          <div class="muted" id="runningMeta">Loading...</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Run ID</th>
+                  <th>Status</th>
+                  <th>Mode</th>
+                  <th>Started</th>
+                </tr>
+              </thead>
+              <tbody id="runningBody"></tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="kpis">
-          <div class="kpi"><div class="v" id="kpiReq">-</div><div class="k">Requests</div></div>
-          <div class="kpi"><div class="v" id="kpiAsr">-</div><div class="k">Assertions</div></div>
-          <div class="kpi"><div class="v" id="kpiFail">-</div><div class="k">Failed Asserts</div></div>
+        <div class="card">
+          <h2>Run Detail</h2>
+          <div id="homeEmpty" class="muted">Select a run from Home or History.</div>
+          <div id="homeDetail" style="display:none;">
+            <div class="mono" id="detailId"></div>
+            <div style="margin:8px 0;"><span id="detailStatus" class="status">unknown</span></div>
+            <div class="kpis">
+              <div class="kpi"><div class="v" id="kpiReq">-</div><div class="k">Requests</div></div>
+              <div class="kpi"><div class="v" id="kpiAssert">-</div><div class="k">Assertions</div></div>
+              <div class="kpi"><div class="v" id="kpiFail">-</div><div class="k">Failed</div></div>
+              <div class="kpi"><div class="v" id="kpiDur">-</div><div class="k">Duration</div></div>
+            </div>
+            <div class="muted" id="detailResp">Avg response: -</div>
+            <div class="actions" id="artifactLinks"></div>
+            <div id="failureBox"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="historyPage" class="page layout">
+        <div class="card">
+          <h2>Run History</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="statusFilter">Status</label>
+              <select id="statusFilter">
+                <option value="">all</option>
+                <option value="running">running</option>
+                <option value="passed">passed</option>
+                <option value="failed">failed</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="modeFilter">Mode</label>
+              <select id="modeFilter">
+                <option value="">all</option>
+                <option value="ci">ci</option>
+                <option value="full">full</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sortFilter">Sort</label>
+              <select id="sortFilter">
+                <option value="desc" selected>newest first</option>
+                <option value="asc">oldest first</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="limit">Page Size</label>
+              <input id="limit" type="number" min="1" max="200" value="25" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="historyRefresh">Refresh</button>
+            <button class="btn" id="prevBtn">Prev</button>
+            <button class="btn" id="nextBtn">Next</button>
+            <span class="muted" id="historyMeta"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Run ID</th>
+                  <th>Status</th>
+                  <th>Mode</th>
+                  <th>Assertions</th>
+                  <th>Started</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="projectsPage" class="page layout">
+        <div class="card">
+          <h2>Create Project</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="newProjectId">Project ID</label>
+              <input id="newProjectId" placeholder="booking-stage" />
+            </div>
+            <div class="field">
+              <label for="newProjectName">Project Name</label>
+              <input id="newProjectName" placeholder="Booking Stage" />
+            </div>
+            <div class="field">
+              <label for="newCollectionFile">Collection File</label>
+              <input id="newCollectionFile" placeholder="booking-stage.postman_collection.json" />
+            </div>
+            <div class="field">
+              <label for="newEnvironmentFile">Environment File</label>
+              <input id="newEnvironmentFile" placeholder="booking-stage.postman_environment.json" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="createProjectBtn">Create Project</button>
+            <button class="btn" id="refreshProjectsBtn">Refresh Projects</button>
+          </div>
+          <div class="muted" id="projectMsg">Create a project and select it from the project cards.</div>
         </div>
 
-        <div class="tiny" id="detailDuration"></div>
-        <div class="tiny" id="detailResp"></div>
+        <div class="card">
+          <h2>Project Cards</h2>
+          <div class="section-note">Click a card to set active project context for all pages.</div>
+          <div id="projectCards" class="project-grid"></div>
+        </div>
+      </section>
 
-        <div class="links" id="artifactLinks"></div>
+      <section id="collectionsPage" class="page layout">
+        <div class="card">
+          <h2>Upload Collection JSON</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="collectionAssetId">Collection ID</label>
+              <input id="collectionAssetId" placeholder="restful-booker-core" />
+            </div>
+            <div class="field">
+              <label for="collectionAssetName">Collection Name</label>
+              <input id="collectionAssetName" placeholder="Restful Booker Core" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="collectionFileInput">Collection JSON File</label>
+              <input id="collectionFileInput" type="file" accept=".json,application/json" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="uploadCollectionBtn">Upload Collection</button>
+          </div>
+          <div class="muted" id="collectionMsg"></div>
+        </div>
 
-        <div id="failureList"></div>
-      </div>
-    </section>
+        <div class="card">
+          <h2>Stored Collections</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>File</th>
+                </tr>
+              </thead>
+              <tbody id="collectionListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="environmentsPage" class="page layout">
+        <div class="card">
+          <h2>Upload Environment JSON</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="environmentAssetId">Environment ID</label>
+              <input id="environmentAssetId" placeholder="dev" />
+            </div>
+            <div class="field">
+              <label for="environmentAssetName">Environment Name</label>
+              <input id="environmentAssetName" placeholder="Development" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="environmentFileInput">Environment JSON File</label>
+              <input id="environmentFileInput" type="file" accept=".json,application/json" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="uploadEnvironmentBtn">Upload Environment</button>
+          </div>
+          <div class="muted" id="environmentMsg"></div>
+        </div>
+
+        <div class="card">
+          <h2>Stored Environments</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>File</th>
+                </tr>
+              </thead>
+              <tbody id="environmentListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="presetsPage" class="page layout">
+        <div class="card">
+          <h2>Create Trigger Preset</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="presetIdInput">Preset ID</label>
+              <input id="presetIdInput" placeholder="dev-smoke" />
+            </div>
+            <div class="field">
+              <label for="presetNameInput">Preset Name</label>
+              <input id="presetNameInput" placeholder="DEV Smoke" />
+            </div>
+            <div class="field">
+              <label for="presetCollectionSelect">Collection</label>
+              <select id="presetCollectionSelect"></select>
+            </div>
+            <div class="field">
+              <label for="presetEnvironmentSelect">Environment</label>
+              <select id="presetEnvironmentSelect"></select>
+            </div>
+          </div>
+          <div class="actions">
+            <label><input type="checkbox" id="presetDefaultCheckbox" /> Mark as default preset</label>
+            <button class="btn primary" id="createPresetBtn">Save Preset</button>
+          </div>
+          <div class="muted" id="presetMsg"></div>
+        </div>
+
+        <div class="card">
+          <h2>Saved Presets</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Preset</th>
+                  <th>Collection</th>
+                  <th>Environment</th>
+                  <th>Default</th>
+                </tr>
+              </thead>
+              <tbody id="presetListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="triggerPage" class="page layout">
+        <div class="card">
+          <h2>Release Trigger</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="triggerProjectSelect">Project</label>
+              <select id="triggerProjectSelect"></select>
+            </div>
+            <div class="field">
+              <label for="presetSelect">Preset</label>
+              <select id="presetSelect"></select>
+            </div>
+            <div class="field">
+              <label for="mode">Mode</label>
+              <select id="mode">
+                <option value="ci">ci</option>
+                <option value="full" selected>full</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="waitTimeout">Wait Timeout (seconds)</label>
+              <input id="waitTimeout" type="number" min="1" value="180" />
+            </div>
+          </div>
+          <div class="muted" id="presetMeta">Default preset or legacy project files will be used.</div>
+          <div class="actions">
+            <label><input type="checkbox" id="waitForCompletion" checked /> Wait for completion in this call</label>
+            <button class="btn primary" id="runBtn">Trigger Run</button>
+            <button class="btn" id="healthBtn">Health</button>
+          </div>
+          <div class="muted" id="triggerMsg">Ready.</div>
+        </div>
+
+        <div class="card">
+          <h2>Release Snippet</h2>
+          <div class="actions">
+            <button class="btn" id="copyCurlBtn">Copy Curl</button>
+            <button class="btn" id="copyPythonBtn">Copy Python</button>
+          </div>
+          <div class="muted" id="snippetMsg">Generated from selected project and preset.</div>
+          <div class="two-col" style="margin-top:10px;">
+            <div>
+              <h3>Curl</h3>
+              <pre class="snippet-box" id="curlSnippet"></pre>
+            </div>
+            <div>
+              <h3>Python</h3>
+              <pre class="snippet-box" id="pythonSnippet"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settingsPage" class="page layout">
+        <div class="card">
+          <h2>Global Settings</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="baseUrl">Base URL</label>
+              <input id="baseUrl" value="http://localhost:8080" />
+            </div>
+            <div class="field">
+              <label for="token">Trigger Token</label>
+              <input id="token" placeholder="x-trigger-token" />
+            </div>
+            <div class="field">
+              <label for="pollInterval">Polling Interval (ms)</label>
+              <input id="pollInterval" type="number" min="1000" value="2500" />
+            </div>
+            <div class="field">
+              <label for="defaultPageSize">Default Page Size</label>
+              <input id="defaultPageSize" type="number" min="1" max="200" value="25" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="saveSettings">Save Settings</button>
+            <button class="btn" id="resetSettings">Reset Defaults</button>
+          </div>
+          <div class="muted" id="settingsMsg"></div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script>
     const state = {
+      offset: 0,
+      total: 0,
       selectedRunId: null,
-      pollTimer: null
+      historyItems: [],
+      selectedRunIndex: -1,
+      projects: [],
+      collections: [],
+      environments: [],
+      presets: [],
+      pollTimer: null,
+      settings: {
+        baseUrl: "http://localhost:8080",
+        token: "",
+        pollInterval: 2500,
+        defaultPageSize: 25,
+        currentProjectId: "default",
+        theme: "light"
+      }
     };
 
-    const el = (id) => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
 
-    const ids = {
-      baseUrl: el('baseUrl'),
-      token: el('token'),
-      mode: el('mode'),
-      waitForCompletion: el('waitForCompletion'),
-      waitTimeoutSec: el('waitTimeoutSec'),
-      triggerBtn: el('triggerBtn'),
-      healthBtn: el('healthBtn'),
-      refreshBtn: el('refreshBtn'),
-      clearBtn: el('clearBtn'),
-      healthState: el('healthState'),
-      triggerMsg: el('triggerMsg'),
-      runsTableBody: document.querySelector('#runsTable tbody'),
-      listMeta: el('listMeta'),
-      statusFilter: el('statusFilter'),
-      modeFilter: el('modeFilter'),
-      sortFilter: el('sortFilter'),
-      limit: el('limit'),
-      offset: el('offset'),
-      detailEmpty: el('detailEmpty'),
-      detailBox: el('detailBox'),
-      detailRunId: el('detailRunId'),
-      detailStatus: el('detailStatus'),
-      kpiReq: el('kpiReq'),
-      kpiAsr: el('kpiAsr'),
-      kpiFail: el('kpiFail'),
-      detailDuration: el('detailDuration'),
-      detailResp: el('detailResp'),
-      artifactLinks: el('artifactLinks'),
-      failureList: el('failureList')
+    const ui = {
+      menuButtons: Array.from(document.querySelectorAll(".menu-btn")),
+      pageTitle: $("pageTitle"),
+      pageHint: $("pageHint"),
+      globalSummary: $("globalSummary"),
+      themeToggle: $("themeToggle"),
+      globalProjectSelect: $("globalProjectSelect"),
+      historyProjectFilter: $("historyProjectFilter"),
+      globalReloadBtn: $("globalReloadBtn"),
+      assetSummary: $("assetSummary"),
+
+      runningBody: $("runningBody"),
+      runningMeta: $("runningMeta"),
+      homeEmpty: $("homeEmpty"),
+      homeDetail: $("homeDetail"),
+      detailId: $("detailId"),
+      detailStatus: $("detailStatus"),
+      kpiReq: $("kpiReq"),
+      kpiAssert: $("kpiAssert"),
+      kpiFail: $("kpiFail"),
+      kpiDur: $("kpiDur"),
+      detailResp: $("detailResp"),
+      artifactLinks: $("artifactLinks"),
+      failureBox: $("failureBox"),
+
+      statusFilter: $("statusFilter"),
+      modeFilter: $("modeFilter"),
+      sortFilter: $("sortFilter"),
+      limit: $("limit"),
+      historyRefresh: $("historyRefresh"),
+      prevBtn: $("prevBtn"),
+      nextBtn: $("nextBtn"),
+      historyMeta: $("historyMeta"),
+      historyBody: $("historyBody"),
+
+      projectCards: $("projectCards"),
+      newProjectId: $("newProjectId"),
+      newProjectName: $("newProjectName"),
+      newCollectionFile: $("newCollectionFile"),
+      newEnvironmentFile: $("newEnvironmentFile"),
+      createProjectBtn: $("createProjectBtn"),
+      refreshProjectsBtn: $("refreshProjectsBtn"),
+      projectMsg: $("projectMsg"),
+
+      collectionAssetId: $("collectionAssetId"),
+      collectionAssetName: $("collectionAssetName"),
+      collectionFileInput: $("collectionFileInput"),
+      uploadCollectionBtn: $("uploadCollectionBtn"),
+      collectionMsg: $("collectionMsg"),
+      collectionListBody: $("collectionListBody"),
+
+      environmentAssetId: $("environmentAssetId"),
+      environmentAssetName: $("environmentAssetName"),
+      environmentFileInput: $("environmentFileInput"),
+      uploadEnvironmentBtn: $("uploadEnvironmentBtn"),
+      environmentMsg: $("environmentMsg"),
+      environmentListBody: $("environmentListBody"),
+
+      presetIdInput: $("presetIdInput"),
+      presetNameInput: $("presetNameInput"),
+      presetCollectionSelect: $("presetCollectionSelect"),
+      presetEnvironmentSelect: $("presetEnvironmentSelect"),
+      presetDefaultCheckbox: $("presetDefaultCheckbox"),
+      createPresetBtn: $("createPresetBtn"),
+      presetMsg: $("presetMsg"),
+      presetListBody: $("presetListBody"),
+
+      triggerProjectSelect: $("triggerProjectSelect"),
+      presetSelect: $("presetSelect"),
+      presetMeta: $("presetMeta"),
+      mode: $("mode"),
+      waitTimeout: $("waitTimeout"),
+      waitForCompletion: $("waitForCompletion"),
+      runBtn: $("runBtn"),
+      healthBtn: $("healthBtn"),
+      triggerMsg: $("triggerMsg"),
+      copyCurlBtn: $("copyCurlBtn"),
+      copyPythonBtn: $("copyPythonBtn"),
+      curlSnippet: $("curlSnippet"),
+      pythonSnippet: $("pythonSnippet"),
+      snippetMsg: $("snippetMsg"),
+
+      baseUrl: $("baseUrl"),
+      token: $("token"),
+      pollInterval: $("pollInterval"),
+      defaultPageSize: $("defaultPageSize"),
+      saveSettings: $("saveSettings"),
+      resetSettings: $("resetSettings"),
+      settingsMsg: $("settingsMsg")
     };
 
-    function savePrefs() {
-      localStorage.setItem('newman.ui.baseUrl', ids.baseUrl.value.trim());
-      localStorage.setItem('newman.ui.token', ids.token.value.trim());
+    const pageMeta = {
+      homePage: { title: "Home", hint: "Running runs and quick operational status" },
+      historyPage: { title: "History", hint: "Audit all runs with filters and pagination" },
+      projectsPage: { title: "Projects", hint: "Create and choose project workspaces" },
+      collectionsPage: { title: "Collections", hint: "Upload and manage collection JSON files" },
+      environmentsPage: { title: "Environments", hint: "Upload multiple environment JSON files" },
+      presetsPage: { title: "Trigger Presets", hint: "Bind collection plus environment for release" },
+      triggerPage: { title: "Release Trigger", hint: "Generate and copy endpoint code for pipelines" },
+      settingsPage: { title: "Settings", hint: "Global console configuration used across all pages" }
+    };
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem("newman.enterprise.settings");
+        if (raw) {
+          state.settings = { ...state.settings, ...JSON.parse(raw) };
+        }
+      } catch {}
     }
 
-    function loadPrefs() {
-      ids.baseUrl.value = localStorage.getItem('newman.ui.baseUrl') || ids.baseUrl.value;
-      ids.token.value = localStorage.getItem('newman.ui.token') || '';
+    function saveSettings() {
+      localStorage.setItem("newman.enterprise.settings", JSON.stringify(state.settings));
     }
 
-    function headers() {
-      const token = ids.token.value.trim();
-      const h = {};
-      if (token) h['x-trigger-token'] = token;
-      return h;
+    function applySettingsToUi() {
+      ui.baseUrl.value = state.settings.baseUrl;
+      ui.token.value = state.settings.token;
+      ui.pollInterval.value = String(state.settings.pollInterval);
+      ui.defaultPageSize.value = String(state.settings.defaultPageSize);
+      ui.limit.value = String(state.settings.defaultPageSize);
+      document.documentElement.dataset.theme = state.settings.theme;
     }
 
-    async function api(path, options = {}) {
-      const base = ids.baseUrl.value.trim().replace(/\/$/, '');
+    function readSettingsFromForm() {
+      state.settings.baseUrl = ui.baseUrl.value.trim() || "http://localhost:8080";
+      state.settings.token = ui.token.value.trim();
+      state.settings.pollInterval = Math.max(1000, Number(ui.pollInterval.value || 2500));
+      state.settings.defaultPageSize = Math.min(200, Math.max(1, Number(ui.defaultPageSize.value || 25)));
+      state.settings.currentProjectId = ui.globalProjectSelect.value || "default";
+      state.settings.theme = document.documentElement.dataset.theme || "light";
+    }
+
+    function setActivePage(pageId) {
+      for (const section of document.querySelectorAll(".page")) {
+        section.classList.toggle("active", section.id === pageId);
+      }
+      for (const button of ui.menuButtons) {
+        button.classList.toggle("active", button.dataset.page === pageId);
+      }
+      ui.pageTitle.textContent = pageMeta[pageId].title;
+      ui.pageHint.textContent = pageMeta[pageId].hint;
+    }
+
+    function authHeaders(extra = {}) {
+      return {
+        ...extra,
+        ...(state.settings.token ? { "x-trigger-token": state.settings.token } : {})
+      };
+    }
+
+    async function request(path, options = {}) {
+      const base = state.settings.baseUrl.replace(/\/$/, "");
       const response = await fetch(base + path, {
         ...options,
-        headers: {
-          ...(options.headers || {}),
-          ...headers()
-        }
+        headers: authHeaders(options.headers || {})
       });
-
-      const contentType = response.headers.get('content-type') || '';
-      const payload = contentType.includes('application/json') ? await response.json() : await response.text();
-
+      const contentType = response.headers.get("content-type") || "";
+      const payload = contentType.includes("application/json") ? await response.json() : await response.text();
       if (!response.ok) {
-        const msg = typeof payload === 'string' ? payload : (payload.error || JSON.stringify(payload));
-        throw new Error(msg);
+        throw new Error(typeof payload === "string" ? payload : (payload.error || JSON.stringify(payload)));
       }
       return payload;
     }
 
-    function renderStatusChip(node, status) {
-      node.className = 'status ' + (status || '');
-      node.textContent = status || 'unknown';
+    async function requestBlob(path) {
+      const base = state.settings.baseUrl.replace(/\/$/, "");
+      const response = await fetch(base + path, { headers: authHeaders() });
+      if (!response.ok) {
+        throw new Error(`Download failed (${response.status})`);
+      }
+      const blob = await response.blob();
+      const disposition = response.headers.get("content-disposition") || "";
+      const match = disposition.match(/filename="?([^";]+)"?/i);
+      return { blob, fileName: match ? match[1] : "download.bin" };
     }
 
-    function formatAssertion(summary) {
-      const a = summary?.assertions;
-      if (!a) return '-';
-      return `${a.executed}/${a.failed}`;
+    function saveBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     }
 
-    function renderRuns(items) {
-      ids.runsTableBody.innerHTML = '';
+    async function downloadArtifact(path, preferredName) {
+      try {
+        const { blob, fileName } = await requestBlob(path);
+        saveBlob(blob, preferredName || fileName);
+      } catch (error) {
+        ui.triggerMsg.textContent = `Download error: ${error.message}`;
+      }
+    }
+
+    function setStatusChip(node, status) {
+      node.className = `status ${status || ""}`;
+      node.textContent = status || "unknown";
+    }
+
+    function slugify(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    }
+
+    function activeProjectId() {
+      return ui.globalProjectSelect.value || state.settings.currentProjectId || "default";
+    }
+
+    function projectOptions(includeAll = false) {
+      const options = state.projects.map((p) => `<option value="${p.projectId}">${p.name} (${p.projectId})</option>`);
+      if (includeAll) {
+        options.unshift('<option value="">all projects</option>');
+      }
+      return options.join("");
+    }
+
+    function optionMarkup(items, emptyLabel) {
       if (!items.length) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="5" class="tiny">No runs found.</td>';
-        ids.runsTableBody.appendChild(tr);
+        return `<option value="">${emptyLabel}</option>`;
+      }
+      return items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+    }
+
+    function renderSimpleTable(tbody, items, columns, emptyText) {
+      tbody.innerHTML = "";
+      if (!items.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="${columns.length}" class="muted">${emptyText}</td>`;
+        tbody.appendChild(tr);
         return;
       }
-
-      items.forEach((item) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="mono">${item.runId}</td>
-          <td><span class="status ${item.status || ''}">${item.status || 'unknown'}</span></td>
-          <td>${item.mode || '-'}</td>
-          <td>${formatAssertion(item.summary)}</td>
-          <td class="tiny">${item.startedAt || '-'}</td>
-        `;
-        tr.addEventListener('click', () => selectRun(item.runId));
-        ids.runsTableBody.appendChild(tr);
-      });
+      for (const item of items) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = columns.map((column) => `<td>${column(item)}</td>`).join("");
+        tbody.appendChild(tr);
+      }
     }
 
-    function renderDetail(data) {
-      ids.detailEmpty.style.display = 'none';
-      ids.detailBox.style.display = 'block';
-      ids.detailRunId.textContent = data.runId;
-      renderStatusChip(ids.detailStatus, data.status);
+    function renderProjectCards() {
+      ui.projectCards.innerHTML = "";
+      if (!state.projects.length) {
+        ui.projectCards.innerHTML = '<div class="muted">No projects found.</div>';
+        return;
+      }
+      for (const project of state.projects) {
+        const tile = document.createElement("div");
+        tile.className = `project-tile ${project.projectId === state.settings.currentProjectId ? "active" : ""}`;
+        tile.innerHTML = `
+          <h3>${project.name}</h3>
+          <div class="mono">${project.projectId}</div>
+          <div class="muted">Collections: ${project.collectionsCount ?? 0} | Environments: ${project.environmentsCount ?? 0}</div>
+          <div class="muted">Presets: ${project.presetsCount ?? 0} | Default: ${project.defaultPresetId || "-"}</div>
+        `;
+        tile.addEventListener("click", () => syncProjectContext(project.projectId));
+        ui.projectCards.appendChild(tile);
+      }
+    }
 
-      const req = data.summary?.requests;
-      const asr = data.summary?.assertions;
-      ids.kpiReq.textContent = req ? req.executed : '-';
-      ids.kpiAsr.textContent = asr ? asr.executed : '-';
-      ids.kpiFail.textContent = asr ? asr.failed : '-';
+    function renderProjectSelectors() {
+      const allOptions = projectOptions(true);
+      const activeOnly = projectOptions(false);
 
-      ids.detailDuration.textContent = `Duration: ${data.summary?.totalRunDuration || '-'}`;
-      ids.detailResp.textContent = `Avg response: ${data.summary?.averageResponseTime || '-'}`;
+      ui.globalProjectSelect.innerHTML = activeOnly;
+      ui.triggerProjectSelect.innerHTML = activeOnly;
+      ui.historyProjectFilter.innerHTML = allOptions;
 
-      const links = [];
-      const base = ids.baseUrl.value.trim().replace(/\/$/, '');
-      if (data.artifactUrls?.log) links.push(['log', base + data.artifactUrls.log]);
-      if (data.artifactUrls?.junit) links.push(['junit', base + data.artifactUrls.junit]);
-      if (data.artifactUrls?.json) links.push(['json', base + data.artifactUrls.json]);
-      if (data.artifactUrls?.html) links.push(['html', base + data.artifactUrls.html]);
-      ids.artifactLinks.innerHTML = links.map(([name, url]) => `<a href="${url}" target="_blank" rel="noopener">${name}</a>`).join('');
+      const currentProjectId = state.settings.currentProjectId;
+      const exists = state.projects.some((p) => p.projectId === currentProjectId);
+      if (!exists && state.projects.length > 0) {
+        state.settings.currentProjectId = state.projects[0].projectId;
+      }
 
-      const fails = data.failureSummary || [];
-      ids.failureList.innerHTML = fails.length
-        ? fails.map((f) => `<div class="fail">${f}</div>`).join('')
-        : '<div class="tiny">No failures captured.</div>';
+      if (state.settings.currentProjectId) {
+        ui.globalProjectSelect.value = state.settings.currentProjectId;
+        ui.triggerProjectSelect.value = state.settings.currentProjectId;
+      }
+
+      ui.historyProjectFilter.value = "";
+      renderProjectCards();
+    }
+
+    function renderReleaseSnippets() {
+      const base = (state.settings.baseUrl || "http://localhost:8080").replace(/\/$/, "");
+      const projectId = ui.triggerProjectSelect.value || state.settings.currentProjectId || "default";
+      const body = {
+        projectId,
+        ...(ui.presetSelect.value ? { presetId: ui.presetSelect.value } : {}),
+        mode: ui.mode.value,
+        waitForCompletion: ui.waitForCompletion.checked,
+        waitTimeoutSec: Number(ui.waitTimeout.value || 180)
+      };
+      const triggerUrl = `${base}/projects/${encodeURIComponent(projectId)}/release/trigger`;
+      const token = state.settings.token || "<your-token>";
+      const jsonBody = JSON.stringify(body, null, 2);
+      const escaped = jsonBody.split("'").join(String.raw`'\''`);
+
+      ui.curlSnippet.textContent = String.raw`curl -X POST "${triggerUrl}" \
+  -H "Content-Type: application/json" \
+  -H "x-trigger-token: ${token}" \
+  -d '${escaped}'`;
+
+      ui.pythonSnippet.textContent = `import requests
+
+url = "${triggerUrl}"
+headers = {
+    "Content-Type": "application/json",
+    "x-trigger-token": "${token}"
+}
+payload = ${jsonBody}
+
+response = requests.post(url, headers=headers, json=payload, timeout=180)
+print(response.status_code)
+print(response.text)`;
+
+      ui.snippetMsg.textContent = `Snippet ready for project ${projectId}${body.presetId ? ` and preset ${body.presetId}` : ""}.`;
+    }
+
+    function renderResourceViews() {
+      ui.presetCollectionSelect.innerHTML = optionMarkup(
+        state.collections.map((item) => ({ value: item.assetId, label: `${item.name} (${item.assetId})` })),
+        "No collections uploaded"
+      );
+      ui.presetEnvironmentSelect.innerHTML = optionMarkup(
+        state.environments.map((item) => ({ value: item.assetId, label: `${item.name} (${item.assetId})` })),
+        "No environments uploaded"
+      );
+
+      const defaultPresetId = state.projects.find((item) => item.projectId === activeProjectId())?.defaultPresetId || "";
+      const presetOptions = [{ value: "", label: defaultPresetId ? `Use default preset (${defaultPresetId})` : "Use backend default selection" }]
+        .concat(state.presets.map((item) => ({ value: item.presetId, label: `${item.name} (${item.presetId})` })));
+      ui.presetSelect.innerHTML = optionMarkup(presetOptions, "No presets available");
+
+      renderSimpleTable(
+        ui.collectionListBody,
+        state.collections,
+        [
+          (item) => `<span class="mono">${item.assetId}</span>`,
+          (item) => item.name,
+          (item) => item.fileName
+        ],
+        "No collections uploaded"
+      );
+
+      renderSimpleTable(
+        ui.environmentListBody,
+        state.environments,
+        [
+          (item) => `<span class="mono">${item.assetId}</span>`,
+          (item) => item.name,
+          (item) => item.fileName
+        ],
+        "No environments uploaded"
+      );
+
+      renderSimpleTable(
+        ui.presetListBody,
+        state.presets,
+        [
+          (item) => `<span class="mono">${item.presetId}</span><div class="muted">${item.name}</div>`,
+          (item) => `<span class="mono">${item.collectionAssetId}</span>`,
+          (item) => `<span class="mono">${item.environmentAssetId}</span>`,
+          (item) => item.isDefault ? "Yes" : "No"
+        ],
+        "No presets created"
+      );
+
+      ui.assetSummary.textContent = `Project ${activeProjectId()} | Collections: ${state.collections.length} | Environments: ${state.environments.length} | Presets: ${state.presets.length}`;
+
+      const selectedPreset = state.presets.find((item) => item.presetId === ui.presetSelect.value);
+      if (selectedPreset) {
+        ui.presetMeta.textContent = `Preset ${selectedPreset.name} uses collection ${selectedPreset.collectionAssetId} and environment ${selectedPreset.environmentAssetId}.`;
+      } else if (defaultPresetId) {
+        ui.presetMeta.textContent = `Default preset ${defaultPresetId} will be used if no preset is selected.`;
+      } else {
+        ui.presetMeta.textContent = "Default preset or legacy project files will be used.";
+      }
+
+      renderReleaseSnippets();
+    }
+
+    async function loadProjectResources(projectId) {
+      if (!projectId) {
+        return;
+      }
+      try {
+        const [collectionsData, environmentsData, presetsData] = await Promise.all([
+          request(`/projects/${encodeURIComponent(projectId)}/collections`),
+          request(`/projects/${encodeURIComponent(projectId)}/environments`),
+          request(`/projects/${encodeURIComponent(projectId)}/presets`)
+        ]);
+        state.collections = collectionsData.items || [];
+        state.environments = environmentsData.items || [];
+        state.presets = presetsData.items || [];
+        renderResourceViews();
+      } catch (error) {
+        ui.assetSummary.textContent = `Asset load error: ${error.message}`;
+      }
+    }
+
+    async function syncProjectContext(projectId) {
+      state.settings.currentProjectId = projectId || "default";
+      saveSettings();
+      renderProjectSelectors();
+      await loadProjectResources(state.settings.currentProjectId);
+      await loadRunningList();
+    }
+
+    async function loadProjects() {
+      try {
+        const data = await request("/projects");
+        state.projects = data.items || [];
+        renderProjectSelectors();
+        await loadProjectResources(activeProjectId());
+      } catch (error) {
+        ui.projectMsg.textContent = `Projects error: ${error.message}`;
+      }
     }
 
     async function loadHealth() {
       try {
-        const d = await api('/health');
-        ids.healthState.textContent = `Health: ${d.status} | activeRunId: ${d.activeRunId || '-'}`;
+        const data = await request("/health");
+        ui.globalSummary.textContent = `Health: ${data.status} | activeRunId: ${data.activeRunId || "-"}`;
       } catch (error) {
-        ids.healthState.textContent = `Health error: ${error.message}`;
+        ui.globalSummary.textContent = `Health error: ${error.message}`;
       }
     }
 
-    async function loadRuns() {
+    function historyQuery() {
       const params = new URLSearchParams();
-      params.set('limit', ids.limit.value || '25');
-      params.set('offset', ids.offset.value || '0');
-      if (ids.statusFilter.value) params.set('status', ids.statusFilter.value);
-      if (ids.modeFilter.value) params.set('mode', ids.modeFilter.value);
-      if (ids.sortFilter.value) params.set('sort', ids.sortFilter.value);
+      params.set("limit", ui.limit.value || String(state.settings.defaultPageSize));
+      params.set("offset", String(state.offset));
+      if (ui.historyProjectFilter.value) params.set("projectId", ui.historyProjectFilter.value);
+      if (ui.statusFilter.value) params.set("status", ui.statusFilter.value);
+      if (ui.modeFilter.value) params.set("mode", ui.modeFilter.value);
+      if (ui.sortFilter.value) params.set("sort", ui.sortFilter.value);
+      return params.toString();
+    }
 
-      try {
-        const d = await api('/runs?' + params.toString());
-        ids.listMeta.textContent = `Total: ${d.total} | Showing: ${d.count} | Offset: ${d.offset}`;
-        renderRuns(d.items || []);
-      } catch (error) {
-        ids.listMeta.textContent = `List error: ${error.message}`;
-        renderRuns([]);
+    function renderRunTable(tbody, items, onSelect) {
+      tbody.innerHTML = "";
+      if (!items.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td colspan="5" class="muted">No runs found</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+
+      for (const item of items) {
+        const assertions = item.summary?.assertions;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="mono"><button class="run-id-link" data-run-id="${item.runId}">${item.runId}</button></td>
+          <td><span class="status ${item.status || ""}">${item.status || "unknown"}</span></td>
+          <td>${item.mode || "-"}</td>
+          <td>${assertions ? `${assertions.executed}/${assertions.failed}` : "-"}</td>
+          <td class="muted">${item.startedAt || "-"}</td>
+        `;
+        tr.addEventListener("click", () => onSelect(item.runId));
+        tr.querySelector("button[data-run-id]").addEventListener("click", (event) => {
+          event.stopPropagation();
+          onSelect(item.runId);
+        });
+        tbody.appendChild(tr);
       }
     }
 
-    async function selectRun(runId) {
+    async function loadHistory() {
+      try {
+        const data = await request(`/runs?${historyQuery()}`);
+        state.historyItems = data.items || [];
+        state.total = data.total || 0;
+        ui.historyMeta.textContent = `Total: ${state.total} | Showing: ${data.count} | Offset: ${data.offset}`;
+        renderRunTable(ui.historyBody, state.historyItems, loadRunDetail);
+      } catch (error) {
+        ui.historyMeta.textContent = `History error: ${error.message}`;
+        renderRunTable(ui.historyBody, [], loadRunDetail);
+      }
+    }
+
+    async function loadRunningList() {
+      try {
+        const params = new URLSearchParams({
+          status: "running",
+          sort: "desc",
+          limit: String(state.settings.defaultPageSize),
+          offset: "0",
+          projectId: state.settings.currentProjectId || "default"
+        });
+        const data = await request(`/runs?${params.toString()}`);
+        ui.runningMeta.textContent = `Running runs: ${data.count}`;
+        renderRunTable(ui.runningBody, data.items || [], loadRunDetail);
+      } catch (error) {
+        ui.runningMeta.textContent = `Running list error: ${error.message}`;
+        renderRunTable(ui.runningBody, [], loadRunDetail);
+      }
+    }
+
+    function renderRunDetail(data) {
+      ui.homeEmpty.style.display = "none";
+      ui.homeDetail.style.display = "block";
+      ui.detailId.textContent = data.runId;
+      setStatusChip(ui.detailStatus, data.status);
+
+      const req = data.summary?.requests;
+      const asr = data.summary?.assertions;
+      ui.kpiReq.textContent = req ? String(req.executed) : "-";
+      ui.kpiAssert.textContent = asr ? String(asr.executed) : "-";
+      ui.kpiFail.textContent = asr ? String(asr.failed) : "-";
+      ui.kpiDur.textContent = data.summary?.totalRunDuration || "-";
+      ui.detailResp.textContent = `Avg response: ${data.summary?.averageResponseTime || "-"}`;
+
+      const links = [];
+      if (data.artifactUrls?.zip) links.push(["Download ZIP", data.artifactUrls.zip, `${data.runId}-artifacts.zip`]);
+      if (data.artifactUrls?.junit) links.push(["Download JUnit", data.artifactUrls.junit, `${data.runId}.xml`]);
+      if (data.artifactUrls?.json) links.push(["Download JSON", data.artifactUrls.json, `${data.runId}.json`]);
+      if (data.artifactUrls?.html) links.push(["Download HTML", data.artifactUrls.html, `${data.runId}.html`]);
+      if (data.artifactUrls?.log) links.push(["Download Log", data.artifactUrls.log, `${data.runId}.log`]);
+
+      ui.artifactLinks.innerHTML = links.map(([name, path, fileName]) => `<button class="btn" data-path="${path}" data-name="${fileName}">${name}</button>`).join("");
+      for (const btn of ui.artifactLinks.querySelectorAll("button[data-path]")) {
+        btn.addEventListener("click", () => downloadArtifact(btn.dataset.path, btn.dataset.name));
+      }
+
+      const failures = data.failureSummary || [];
+      ui.failureBox.innerHTML = failures.length
+        ? failures.map((f) => `<div class="failure">${f}</div>`).join("")
+        : '<div class="muted">No failures in this run.</div>';
+    }
+
+    async function loadRunDetail(runId) {
       state.selectedRunId = runId;
       try {
-        const d = await api(`/runs/${encodeURIComponent(runId)}`);
-        renderDetail(d);
+        const data = await request(`/runs/${encodeURIComponent(runId)}`);
+        renderRunDetail(data);
       } catch (error) {
-        ids.triggerMsg.textContent = `Detail error: ${error.message}`;
-      }
-    }
-
-    function startPolling(runId) {
-      stopPolling();
-      state.pollTimer = setInterval(async () => {
-        try {
-          const d = await api(`/runs/${encodeURIComponent(runId)}`);
-          renderDetail(d);
-          if (d.status !== 'running') {
-            stopPolling();
-            await loadRuns();
-          }
-        } catch {
-          stopPolling();
-        }
-      }, 2500);
-    }
-
-    function stopPolling() {
-      if (state.pollTimer) {
-        clearInterval(state.pollTimer);
-        state.pollTimer = null;
+        ui.triggerMsg.textContent = `Detail error: ${error.message}`;
       }
     }
 
     async function triggerRun() {
-      ids.triggerMsg.textContent = 'Triggering...';
-      savePrefs();
       const body = {
-        mode: ids.mode.value,
-        waitForCompletion: ids.waitForCompletion.checked,
-        waitTimeoutSec: Number(ids.waitTimeoutSec.value || 180)
+        projectId: ui.triggerProjectSelect.value || state.settings.currentProjectId || "default",
+        ...(ui.presetSelect.value ? { presetId: ui.presetSelect.value } : {}),
+        mode: ui.mode.value,
+        waitForCompletion: ui.waitForCompletion.checked,
+        waitTimeoutSec: Number(ui.waitTimeout.value || 180)
       };
 
+      ui.triggerMsg.textContent = "Triggering run...";
       try {
-        const d = await api('/run-tests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const data = await request("/run-tests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
         });
-
-        ids.triggerMsg.textContent = `Run: ${d.runId} | status: ${d.status}`;
-        if (d.runId) {
-          await selectRun(d.runId);
-          if (d.status === 'accepted' || d.status === 'running') {
-            startPolling(d.runId);
-          }
-        }
-        await loadRuns();
+        ui.triggerMsg.textContent = `Run ${data.runId} status: ${data.status}`;
+        await loadRunningList();
+        await loadHistory();
         await loadHealth();
       } catch (error) {
-        ids.triggerMsg.textContent = `Trigger error: ${error.message}`;
+        ui.triggerMsg.textContent = `Trigger error: ${error.message}`;
       }
     }
 
-    function clearDetail() {
-      stopPolling();
-      state.selectedRunId = null;
-      ids.detailBox.style.display = 'none';
-      ids.detailEmpty.style.display = 'block';
-      ids.failureList.innerHTML = '';
-      ids.artifactLinks.innerHTML = '';
+    async function createProjectAction() {
+      const body = {
+        projectId: ui.newProjectId.value.trim(),
+        name: ui.newProjectName.value.trim(),
+        collectionFile: ui.newCollectionFile.value.trim(),
+        environmentFile: ui.newEnvironmentFile.value.trim()
+      };
+      if (!body.projectId) {
+        ui.projectMsg.textContent = "Project ID is required.";
+        return;
+      }
+
+      try {
+        const data = await request("/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        ui.projectMsg.textContent = `Created project ${data.project.projectId}.`;
+        ui.newProjectId.value = "";
+        ui.newProjectName.value = "";
+        ui.newCollectionFile.value = "";
+        ui.newEnvironmentFile.value = "";
+
+        await loadProjects();
+        await syncProjectContext(data.project.projectId);
+      } catch (error) {
+        ui.projectMsg.textContent = `Create project error: ${error.message}`;
+      }
     }
 
-    ids.triggerBtn.addEventListener('click', triggerRun);
-    ids.healthBtn.addEventListener('click', loadHealth);
-    ids.refreshBtn.addEventListener('click', loadRuns);
-    ids.clearBtn.addEventListener('click', clearDetail);
-    ids.baseUrl.addEventListener('change', savePrefs);
-    ids.token.addEventListener('change', savePrefs);
-    ids.statusFilter.addEventListener('change', loadRuns);
-    ids.modeFilter.addEventListener('change', loadRuns);
-    ids.sortFilter.addEventListener('change', loadRuns);
+    async function readSelectedFile(input) {
+      const file = input.files && input.files[0];
+      if (!file) {
+        throw new Error("Choose a JSON file first");
+      }
+      return { fileName: file.name, content: await file.text() };
+    }
 
-    loadPrefs();
+    async function uploadAsset(assetType) {
+      const projectId = activeProjectId();
+      const isCollection = assetType === "collection";
+      const idInput = isCollection ? ui.collectionAssetId : ui.environmentAssetId;
+      const nameInput = isCollection ? ui.collectionAssetName : ui.environmentAssetName;
+      const fileInput = isCollection ? ui.collectionFileInput : ui.environmentFileInput;
+      const messageNode = isCollection ? ui.collectionMsg : ui.environmentMsg;
+
+      try {
+        const file = await readSelectedFile(fileInput);
+        const body = {
+          assetId: idInput.value.trim() || slugify(file.fileName.replace(/\.json$/i, "")),
+          name: nameInput.value.trim() || file.fileName.replace(/\.json$/i, ""),
+          fileName: file.fileName,
+          content: file.content
+        };
+
+        await request(`/projects/${encodeURIComponent(projectId)}/${isCollection ? "collections" : "environments"}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        messageNode.textContent = `${isCollection ? "Collection" : "Environment"} ${body.assetId} uploaded.`;
+        idInput.value = "";
+        nameInput.value = "";
+        fileInput.value = "";
+        await loadProjectResources(projectId);
+      } catch (error) {
+        messageNode.textContent = `Upload error: ${error.message}`;
+      }
+    }
+
+    async function createPresetAction() {
+      const projectId = activeProjectId();
+      const body = {
+        presetId: ui.presetIdInput.value.trim(),
+        name: ui.presetNameInput.value.trim(),
+        collectionAssetId: ui.presetCollectionSelect.value,
+        environmentAssetId: ui.presetEnvironmentSelect.value,
+        isDefault: ui.presetDefaultCheckbox.checked
+      };
+
+      if (!body.presetId || !body.collectionAssetId || !body.environmentAssetId) {
+        ui.presetMsg.textContent = "Preset ID, collection, and environment are required.";
+        return;
+      }
+
+      try {
+        await request(`/projects/${encodeURIComponent(projectId)}/presets`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        ui.presetMsg.textContent = `Preset ${body.presetId} saved.`;
+        ui.presetIdInput.value = "";
+        ui.presetNameInput.value = "";
+        ui.presetDefaultCheckbox.checked = false;
+        await loadProjects();
+        await loadProjectResources(projectId);
+      } catch (error) {
+        ui.presetMsg.textContent = `Preset error: ${error.message}`;
+      }
+    }
+
+    function handleFileAutofill(input, idInput, nameInput) {
+      const file = input.files && input.files[0];
+      if (!file) {
+        return;
+      }
+      const baseName = file.name.replace(/\.json$/i, "");
+      if (!idInput.value.trim()) idInput.value = slugify(baseName);
+      if (!nameInput.value.trim()) nameInput.value = baseName;
+    }
+
+    function historyPrev() {
+      const pageSize = Number(ui.limit.value || state.settings.defaultPageSize);
+      state.offset = Math.max(0, state.offset - pageSize);
+      loadHistory();
+    }
+
+    function historyNext() {
+      const pageSize = Number(ui.limit.value || state.settings.defaultPageSize);
+      if (state.offset + pageSize >= state.total) {
+        return;
+      }
+      state.offset += pageSize;
+      loadHistory();
+    }
+
+    function toggleTheme() {
+      const next = (document.documentElement.dataset.theme || "light") === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      state.settings.theme = next;
+      saveSettings();
+    }
+
+    async function copyText(value, label) {
+      try {
+        await navigator.clipboard.writeText(value);
+        ui.snippetMsg.textContent = `${label} copied.`;
+      } catch {
+        ui.snippetMsg.textContent = `Copy failed for ${label}.`;
+      }
+    }
+
+    function saveSettingsAction() {
+      readSettingsFromForm();
+      saveSettings();
+      ui.settingsMsg.textContent = "Settings saved globally.";
+      renderReleaseSnippets();
+      loadProjects();
+      loadHealth();
+      loadRunningList();
+      state.offset = 0;
+      loadHistory();
+    }
+
+    function resetSettingsAction() {
+      state.settings = {
+        baseUrl: "http://localhost:8080",
+        token: "",
+        pollInterval: 2500,
+        defaultPageSize: 25,
+        currentProjectId: "default",
+        theme: "light"
+      };
+      applySettingsToUi();
+      saveSettings();
+      ui.settingsMsg.textContent = "Settings reset to defaults.";
+      renderReleaseSnippets();
+      loadProjects();
+      loadHealth();
+      loadRunningList();
+      state.offset = 0;
+      loadHistory();
+    }
+
+    for (const btn of ui.menuButtons) {
+      btn.addEventListener("click", () => setActivePage(btn.dataset.page));
+    }
+
+    ui.themeToggle.addEventListener("click", toggleTheme);
+    ui.globalReloadBtn.addEventListener("click", () => syncProjectContext(activeProjectId()));
+    ui.globalProjectSelect.addEventListener("change", () => syncProjectContext(ui.globalProjectSelect.value || "default"));
+    ui.triggerProjectSelect.addEventListener("change", () => {
+      syncProjectContext(ui.triggerProjectSelect.value || "default");
+      renderReleaseSnippets();
+    });
+
+    ui.historyRefresh.addEventListener("click", () => { state.offset = 0; loadHistory(); });
+    ui.prevBtn.addEventListener("click", historyPrev);
+    ui.nextBtn.addEventListener("click", historyNext);
+
+    ui.createProjectBtn.addEventListener("click", createProjectAction);
+    ui.refreshProjectsBtn.addEventListener("click", loadProjects);
+
+    ui.uploadCollectionBtn.addEventListener("click", () => uploadAsset("collection"));
+    ui.uploadEnvironmentBtn.addEventListener("click", () => uploadAsset("environment"));
+    ui.collectionFileInput.addEventListener("change", () => handleFileAutofill(ui.collectionFileInput, ui.collectionAssetId, ui.collectionAssetName));
+    ui.environmentFileInput.addEventListener("change", () => handleFileAutofill(ui.environmentFileInput, ui.environmentAssetId, ui.environmentAssetName));
+
+    ui.createPresetBtn.addEventListener("click", createPresetAction);
+
+    ui.runBtn.addEventListener("click", triggerRun);
+    ui.healthBtn.addEventListener("click", loadHealth);
+    ui.presetSelect.addEventListener("change", renderReleaseSnippets);
+    [ui.mode, ui.waitForCompletion, ui.waitTimeout].forEach((node) => node.addEventListener("change", renderReleaseSnippets));
+
+    ui.copyCurlBtn.addEventListener("click", () => copyText(ui.curlSnippet.textContent, "Curl snippet"));
+    ui.copyPythonBtn.addEventListener("click", () => copyText(ui.pythonSnippet.textContent, "Python snippet"));
+
+    ui.saveSettings.addEventListener("click", saveSettingsAction);
+    ui.resetSettings.addEventListener("click", resetSettingsAction);
+
+    [ui.historyProjectFilter, ui.statusFilter, ui.modeFilter, ui.sortFilter, ui.limit].forEach((node) => {
+      node.addEventListener("change", () => {
+        state.offset = 0;
+        loadHistory();
+      });
+    });
+
+    loadSettings();
+    applySettingsToUi();
+    loadProjects();
     loadHealth();
-    loadRuns();
+    loadRunningList();
+    loadHistory();
+    renderReleaseSnippets();
   </script>
 </body>
 </html>
