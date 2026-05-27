@@ -1,0 +1,431 @@
+openapi: 3.0.3
+info:
+  title: Newman Trigger Service API
+  version: 1.0.0
+  description: API for triggering Newman runs, reading run history, and downloading artifacts.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service health and active run
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  activeRunId:
+                    type: string
+                    nullable: true
+  /run-tests:
+    post:
+      summary: Trigger a new Newman run
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunTriggerRequest'
+      responses:
+        '200':
+          description: Run completed before timeout (when waitForCompletion=true)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunDetailResponse'
+        '202':
+          description: Run accepted or still running
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/RunAcceptedResponse'
+                  - $ref: '#/components/schemas/RunRunningResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Another run is active
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Another run is active
+                  activeRunId:
+                    type: string
+  /runs:
+    get:
+      summary: List run history for UI
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 25
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [running, passed, failed]
+        - in: query
+          name: mode
+          schema:
+            type: string
+            enum: [ci, full]
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - in: query
+          name: startedFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: startedTo
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated run history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /runs/{runId}:
+    get:
+      summary: Get run details
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - $ref: '#/components/parameters/RunIdPath'
+      responses:
+        '200':
+          description: Run details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/RunNotFound'
+  /runs/{runId}/log:
+    get:
+      summary: Download plain text log for a run
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - $ref: '#/components/parameters/RunIdPath'
+      responses:
+        '200':
+          description: Run log
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/RunNotFound'
+  /runs/{runId}/artifacts/junit:
+    get:
+      summary: Download JUnit report
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - $ref: '#/components/parameters/RunIdPath'
+      responses:
+        '200':
+          description: JUnit XML report
+          content:
+            application/xml:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Run or artifact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /runs/{runId}/artifacts/json:
+    get:
+      summary: Download JSON report (full mode)
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - $ref: '#/components/parameters/RunIdPath'
+      responses:
+        '200':
+          description: JSON report
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Run or artifact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /runs/{runId}/artifacts/html:
+    get:
+      summary: Download HTML report (full mode)
+      parameters:
+        - $ref: '#/components/parameters/TriggerTokenHeader'
+        - $ref: '#/components/parameters/RunIdPath'
+      responses:
+        '200':
+          description: HTML report
+          content:
+            text/html:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Run or artifact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    TriggerTokenHeader:
+      in: header
+      name: x-trigger-token
+      required: false
+      schema:
+        type: string
+      description: Required when TRIGGER_TOKEN is configured on the server.
+    RunIdPath:
+      in: path
+      name: runId
+      required: true
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Unauthorized
+    RunNotFound:
+      description: Run not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Run not found
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    RunTriggerRequest:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [ci, full]
+          default: ci
+        waitForCompletion:
+          type: boolean
+          default: false
+        waitTimeoutSec:
+          type: integer
+          minimum: 1
+          default: 120
+    RunAcceptedResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+        status:
+          type: string
+          example: accepted
+        mode:
+          type: string
+          enum: [ci, full]
+        statusUrl:
+          type: string
+        artifactUrls:
+          $ref: '#/components/schemas/ArtifactUrls'
+    RunRunningResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+        status:
+          type: string
+          example: running
+        mode:
+          type: string
+          enum: [ci, full]
+        message:
+          type: string
+        statusUrl:
+          type: string
+        artifactUrls:
+          $ref: '#/components/schemas/ArtifactUrls'
+    CountSummary:
+      type: object
+      nullable: true
+      properties:
+        executed:
+          type: integer
+        failed:
+          type: integer
+    RunSummary:
+      type: object
+      nullable: true
+      properties:
+        iterations:
+          $ref: '#/components/schemas/CountSummary'
+        requests:
+          $ref: '#/components/schemas/CountSummary'
+        testScripts:
+          $ref: '#/components/schemas/CountSummary'
+        prerequestScripts:
+          $ref: '#/components/schemas/CountSummary'
+        assertions:
+          $ref: '#/components/schemas/CountSummary'
+        totalRunDuration:
+          type: string
+          nullable: true
+        averageResponseTime:
+          type: string
+          nullable: true
+    ArtifactUrls:
+      type: object
+      properties:
+        log:
+          type: string
+        junit:
+          type: string
+        json:
+          type: string
+          nullable: true
+        html:
+          type: string
+          nullable: true
+    ArtifactsAvailable:
+      type: object
+      properties:
+        log:
+          type: boolean
+        junit:
+          type: boolean
+        json:
+          type: boolean
+        html:
+          type: boolean
+    RunDetailResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+        status:
+          type: string
+          enum: [running, passed, failed]
+        mode:
+          type: string
+          enum: [ci, full]
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        exitCode:
+          type: integer
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        artifacts:
+          type: object
+          additionalProperties:
+            type: string
+        artifactUrls:
+          $ref: '#/components/schemas/ArtifactUrls'
+        logFile:
+          type: string
+        summary:
+          $ref: '#/components/schemas/RunSummary'
+        failureSummary:
+          type: array
+          items:
+            type: string
+        artifactsAvailable:
+          $ref: '#/components/schemas/ArtifactsAvailable'
+    RunListItem:
+      allOf:
+        - $ref: '#/components/schemas/RunDetailResponse'
+    RunListResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        count:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        filters:
+          type: object
+          properties:
+            status:
+              type: string
+              nullable: true
+            mode:
+              type: string
+              nullable: true
+            startedFrom:
+              type: string
+              format: date-time
+              nullable: true
+            startedTo:
+              type: string
+              format: date-time
+              nullable: true
+            sort:
+              type: string
+              enum: [asc, desc]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunListItem'
