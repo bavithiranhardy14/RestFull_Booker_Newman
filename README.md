@@ -272,6 +272,98 @@ Important persistence note:
 - Project scaffolds stored inside the repo workspace are part of your mounted/container filesystem state, while SQLite history persists under the mounted `/app/newman` path.
 - If you delete the Docker volume, the stored run history database is removed.
 
+## Production Deployment Guide
+
+This service can be deployed from GitHub to a container hosting platform and shared with your team using one HTTPS URL.
+
+### 1) Push to GitHub
+
+Ensure your latest `docker` branch changes are pushed.
+
+```bash
+git add .
+git commit -m "Prepare production deployment"
+git push origin docker
+```
+
+### 2) Choose a Host Platform
+
+Use any platform that supports Docker image/web service deploys from GitHub, for example:
+
+- Render
+- Railway
+- Fly.io
+- Azure App Service (Web App for Containers)
+
+### 3) Create a Web Service from GitHub
+
+Connect your GitHub repository and deploy from the `docker` branch.
+
+Use these runtime settings:
+
+- Start port: `8080` inside container (platform maps external HTTPS URL)
+- Environment variable: `PORT` (set by platform or use `8080`)
+- Environment variable: `TRIGGER_TOKEN` (required in shared/team environments)
+
+### 4) Enable Persistent Storage (Required)
+
+Mount persistent disk/volume to:
+
+- `/app/newman`
+
+Why this is required:
+
+- SQLite history is stored at `/app/newman/history/runs-history.db`
+- Without persistent storage, run history and uploaded assets may be lost on restart/redeploy
+
+### 5) Verify Deployment
+
+After deployment, test:
+
+```bash
+curl https://<your-service-url>/health
+curl -H "x-trigger-token: <your-token>" https://<your-service-url>/projects
+```
+
+Open UI endpoints:
+
+- `https://<your-service-url>/ui`
+- `https://<your-service-url>/swagger/index.html`
+
+### 6) Share URL with Team
+
+Share the base service URL and rotate/protect `TRIGGER_TOKEN`.
+
+Recommended team controls:
+
+- Store token in platform secrets only (not in repo)
+- Restrict who can view/update secrets
+- Rotate token periodically
+- Optional: add platform-level auth/SSO or IP allowlist
+
+### 7) Deploy Updates
+
+For every new release:
+
+```bash
+git push origin docker
+```
+
+If auto-deploy is enabled on your platform, the service URL remains the same and updates are rolled out automatically.
+
+### Render Quick Example
+
+On Render:
+
+1. New -> Web Service -> Connect this GitHub repo
+2. Branch: `docker`
+3. Runtime: Docker
+4. Set env vars: `TRIGGER_TOKEN` (and `PORT` if needed)
+5. Add Disk and mount it at `/app/newman`
+6. Deploy and share the generated `https://...onrender.com` URL
+
+This gives your team a single hosted URL for UI, trigger APIs, history, reports, and Swagger.
+
 ## GitHub Container Image Workflow
 
 Workflow file: `.github/workflows/newman-runner-image.yml`

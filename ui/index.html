@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
@@ -6,1573 +6,1431 @@
   <title>Newman Enterprise Console</title>
   <style>
     :root {
-      --bg: #f2f6f8;
+      --bg: #eef4f8;
       --panel: #ffffff;
-      --panel-2: #f9fcfd;
+      --panel-2: #f7fafb;
       --text: #0f172a;
       --muted: #64748b;
-      --border: #dce6ec;
+      --border: #d4e0e8;
       --accent: #0d9488;
       --accent-2: #0f766e;
+      --accent-light: rgba(13,148,136,0.10);
       --success: #16a34a;
+      --success-bg: rgba(22,163,74,0.12);
       --danger: #dc2626;
+      --danger-bg: rgba(220,38,38,0.12);
       --warning: #d97706;
-      --shadow: 0 10px 28px rgba(2, 8, 23, 0.08);
+      --warning-bg: rgba(217,119,6,0.12);
+      --shadow: 0 4px 18px rgba(2,8,23,0.07);
+      --shadow-sm: 0 2px 8px rgba(2,8,23,0.05);
       --side: #0f172a;
       --side-text: #e2e8f0;
       --side-muted: #94a3b8;
+      --side-border: rgba(148,163,184,0.18);
+      --radius: 12px;
+      --radius-sm: 8px;
     }
-
     html[data-theme="dark"] {
-      --bg: #0a1116;
-      --panel: #101b23;
-      --panel-2: #172631;
+      --bg: #080e14;
+      --panel: #0e1a24;
+      --panel-2: #121f2b;
       --text: #e2e8f0;
       --muted: #94a3b8;
-      --border: #243748;
+      --border: #1e3040;
       --accent: #2dd4bf;
       --accent-2: #14b8a6;
+      --accent-light: rgba(45,212,191,0.10);
       --success: #86efac;
+      --success-bg: rgba(134,239,172,0.12);
       --danger: #fca5a5;
+      --danger-bg: rgba(252,165,165,0.12);
       --warning: #fdba74;
-      --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-      --side: #0b141b;
+      --warning-bg: rgba(253,186,116,0.12);
+      --shadow: 0 4px 18px rgba(0,0,0,0.35);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.22);
+      --side: #06101a;
       --side-text: #e2e8f0;
       --side-muted: #94a3b8;
+      --side-border: rgba(148,163,184,0.12);
     }
-
-    * { box-sizing: border-box; }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
     body {
-      margin: 0;
-      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.2), transparent 35%), var(--bg);
+      background: var(--bg);
       color: var(--text);
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
     }
-
-    .app {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 250px 1fr;
-    }
-
+    .app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
     .side {
-      background: linear-gradient(180deg, var(--side), #111d28);
+      background: linear-gradient(170deg, var(--side) 0%, #0e1e30 100%);
       color: var(--side-text);
-      border-right: 1px solid rgba(148, 163, 184, 0.2);
-      padding: 18px 14px;
+      border-right: 1px solid var(--side-border);
+      display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
     }
-
-    .brand {
-      font-weight: 700;
-      font-size: 16px;
-      margin-bottom: 4px;
+    .side-top { padding: 20px 16px 12px; }
+    .brand { font-weight: 800; font-size: 15px; letter-spacing: -0.3px; }
+    .sub { color: var(--side-muted); font-size: 11px; margin-top: 2px; }
+    .side-section { padding: 0 10px; margin-bottom: 6px; }
+    .side-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--side-muted); padding: 10px 6px 4px; }
+    .menu-btn {
+      display: flex; align-items: center; gap: 9px;
+      width: 100%; text-align: left;
+      border: 1px solid transparent; background: transparent; color: var(--side-text);
+      padding: 9px 10px; border-radius: var(--radius-sm);
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      transition: background 0.15s, border-color 0.15s;
     }
-
-    .sub {
-      color: var(--side-muted);
-      font-size: 12px;
-      margin-bottom: 16px;
+    .menu-btn:hover { background: rgba(148,163,184,0.10); }
+    .menu-btn.active { background: var(--accent-light); border-color: rgba(45,212,191,0.35); color: var(--accent); }
+    .menu-btn .icon { font-size: 15px; flex-shrink: 0; opacity: 0.8; }
+    .menu-btn .step-badge {
+      margin-left: auto; font-size: 10px; font-weight: 700;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(148,163,184,0.15); color: var(--side-muted); flex-shrink: 0;
     }
-
-    .menu {
-      display: grid;
-      gap: 8px;
-    }
-
-    .menu button {
-      width: 100%;
-      text-align: left;
-      border: 1px solid transparent;
-      background: rgba(148, 163, 184, 0.08);
-      color: var(--side-text);
-      padding: 10px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .menu button.active {
-      background: rgba(45, 212, 191, 0.18);
-      border-color: rgba(45, 212, 191, 0.4);
-    }
-
-    .side-footer {
-      margin-top: 16px;
-      padding: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      border-radius: 10px;
-      font-size: 12px;
-      color: var(--side-muted);
-    }
-
-    .main {
-      padding: 16px;
-      display: grid;
-      gap: 14px;
-      max-width: 1480px;
-    }
-
-    .top {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      padding: 12px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .title {
-      font-weight: 700;
-      font-size: 18px;
-    }
-
-    .badge {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .layout {
-      display: grid;
-      gap: 14px;
-    }
-
-    .card {
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      padding: 12px;
-    }
-
-    .btn {
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      background: var(--panel);
-      color: var(--text);
-      padding: 8px 10px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .btn.primary {
-      background: var(--accent);
-      color: #fff;
-      border: 0;
-    }
-
+    .menu-btn .step-badge.done { background: var(--success-bg); color: var(--success); }
+    .wizard-progress { margin: 10px 16px 0; border: 1px solid var(--side-border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; color: var(--side-muted); }
+    .wizard-progress-bar { height: 4px; background: rgba(148,163,184,0.2); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+    .wizard-progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; }
+    .side-footer { margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--side-border); font-size: 11px; color: var(--side-muted); }
+    .health-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--side-muted); margin-right: 5px; vertical-align: middle; }
+    .health-dot.ok { background: var(--success); }
+    .health-dot.err { background: var(--danger); }
+    .main { display: flex; flex-direction: column; min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 10; background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); }
+    .topbar-left { flex: 1; min-width: 0; }
+    .page-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+    .page-desc { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .topbar-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .content { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+    .ctx-bar { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; box-shadow: var(--shadow-sm); }
+    .ctx-bar label { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+    .ctx-bar select { min-width: 180px; }
+    .ctx-stat { font-size: 12px; color: var(--muted); padding: 4px 10px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 99px; white-space: nowrap; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .card-title { font-size: 14px; font-weight: 700; }
+    .card-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .card-body { padding: 14px 16px; }
+    .card-footer { padding: 10px 16px; border-top: 1px solid var(--border); background: var(--panel-2); font-size: 12px; color: var(--muted); }
+    .guide-box { border-left: 3px solid var(--accent); background: var(--accent-light); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; font-size: 12px; color: var(--text); }
+    .guide-box strong { color: var(--accent); }
+    .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    input, select, textarea { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--panel); color: var(--text); font-size: 13px; font-family: inherit; width: 100%; transition: border-color 0.15s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    textarea { min-height: 80px; resize: vertical; }
+    .btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--panel); color: var(--text); padding: 7px 12px; cursor: pointer; font-size: 12px; font-weight: 700; white-space: nowrap; transition: background 0.15s, border-color 0.15s; }
+    .btn:hover { background: var(--panel-2); }
+    .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
     .btn.primary:hover { background: var(--accent-2); }
-
-    .context-grid,
-    .field-grid {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .two-col {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .field {
-      display: grid;
-      gap: 4px;
-    }
-
-    label {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    input, select, textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 8px 10px;
-      background: var(--panel);
-      color: var(--text);
-      font-size: 13px;
-      font-family: inherit;
-    }
-
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-      align-items: center;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 10px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      color: var(--muted);
-      font-weight: 700;
-      background: rgba(148, 163, 184, 0.08);
-    }
-
-    tr:hover {
-      background: rgba(45, 212, 191, 0.08);
-      cursor: pointer;
-    }
-
-    .mono {
-      font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
-      word-break: break-all;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .status.running { color: var(--warning); background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.35); }
-    .status.passed { color: var(--success); background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.35); }
-    .status.failed { color: var(--danger); background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.35); }
-
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .kpi {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px;
-      text-align: center;
-      background: rgba(148, 163, 184, 0.08);
-    }
-
-    .kpi .v { font-size: 18px; font-weight: 700; }
-    .kpi .k { font-size: 11px; color: var(--muted); }
-
+    .btn.sm { padding: 4px 9px; font-size: 11px; }
+    .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+    .btn.ghost:hover { background: var(--panel-2); color: var(--text); }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 16px; background: var(--panel-2); border-bottom: 1px solid var(--border); }
+    .filter-bar label { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+    .filter-bar select, .filter-bar input[type="number"] { max-width: 130px; font-size: 12px; padding: 5px 8px; }
+    .filter-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+    .filter-count { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th { padding: 9px 12px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); background: var(--panel-2); }
+    tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: var(--accent-light); cursor: pointer; }
+    .td-wrap { word-break: break-all; max-width: 240px; }
+    .empty-row td { text-align: center; color: var(--muted); padding: 28px; font-size: 13px; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid transparent; }
+    .chip::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .chip.running { color: var(--warning); background: var(--warning-bg); border-color: rgba(217,119,6,0.25); }
+    .chip.passed  { color: var(--success); background: var(--success-bg); border-color: rgba(22,163,74,0.25); }
+    .chip.failed  { color: var(--danger);  background: var(--danger-bg);  border-color: rgba(220,38,38,0.25); }
+    .chip.unknown { color: var(--muted); background: rgba(100,116,139,0.10); }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+    .kpi { background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; }
+    .kpi .v { font-size: 22px; font-weight: 800; }
+    .kpi .k { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .kpi.fail .v { color: var(--danger); }
+    .kpi.pass .v { color: var(--success); }
+    .run-link { color: var(--accent); background: transparent; border: 0; cursor: pointer; font: inherit; text-decoration: underline; padding: 0; }
+    .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .project-tile { border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); padding: 14px; cursor: pointer; box-shadow: var(--shadow-sm); transition: border-color 0.15s, box-shadow 0.15s; }
+    .project-tile:hover { border-color: var(--accent); }
+    .project-tile.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-light); }
+    .project-tile .p-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+    .project-tile .p-id { font-family: monospace; font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .project-tile .p-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+    .p-stat { font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 99px; }
+    .snippet-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .stab { padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; border: 0; background: transparent; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .stab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .snippet-pane { display: none; }
+    .snippet-pane.active { display: block; }
+    .snippet-box { background: #0d1117; color: #e6edf3; padding: 14px 16px; font-size: 12px; font-family: Consolas, "Courier New", monospace; white-space: pre-wrap; word-break: break-word; min-height: 160px; border-radius: 0 0 var(--radius) var(--radius); overflow-x: auto; }
+    .failure-item { border-left: 3px solid var(--danger); background: var(--danger-bg); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 8px 12px; font-size: 12px; margin-bottom: 6px; }
+    .load-more-wrap { padding: 12px 16px; text-align: center; border-top: 1px solid var(--border); }
+    .mono { font-family: Consolas, "Courier New", monospace; font-size: 11px; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .text-success { color: var(--success); }
+    .text-danger  { color: var(--danger); }
+    .divider { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
+    .msg-box { font-size: 12px; padding: 8px 12px; border-radius: var(--radius-sm); margin-top: 8px; }
+    .msg-box.ok   { background: var(--success-bg); color: var(--success); }
+    .msg-box.err  { background: var(--danger-bg);  color: var(--danger); }
+    .msg-box.info { background: var(--accent-light); color: var(--accent); }
     .page { display: none; }
-    .page.active { display: block; }
-
-    .run-id-link {
-      border: 0;
-      padding: 0;
-      margin: 0;
-      color: var(--accent);
-      background: transparent;
-      text-decoration: underline;
-      cursor: pointer;
-      font: inherit;
-    }
-
-    .project-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .project-tile {
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(148, 163, 184, 0.08));
-      padding: 12px;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-    }
-
-    html[data-theme="dark"] .project-tile {
-      background: linear-gradient(180deg, rgba(23, 38, 49, 0.96), rgba(45, 212, 191, 0.08));
-    }
-
-    .project-tile.active {
-      border-color: rgba(45, 212, 191, 0.6);
-      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.3), var(--shadow);
-    }
-
-    .section-note {
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(148, 163, 184, 0.08);
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .snippet-box {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.95);
-      color: #e2e8f0;
-      padding: 12px;
-      font-size: 12px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-      min-height: 150px;
-    }
-
-    .failure {
-      border-left: 3px solid #ef4444;
-      border-radius: 6px;
-      background: rgba(239, 68, 68, 0.14);
-      padding: 8px;
-      margin-bottom: 8px;
-      font-size: 12px;
-    }
-
-    @media (max-width: 1100px) {
+    .page.active { display: contents; }
+    @media (max-width: 1024px) {
       .app { grid-template-columns: 1fr; }
-      .side { border-right: 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
-      .field-grid, .two-col, .context-grid { grid-template-columns: 1fr; }
-      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .side { position: relative; height: auto; flex-direction: row; flex-wrap: wrap; }
+      .kpi-row { grid-template-columns: repeat(2,1fr); }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="side">
-      <div class="brand">Newman Enterprise Console</div>
-      <div class="sub">Trigger, monitor, and audit test runs</div>
+<div class="app">
 
-      <div class="menu">
-        <button class="menu-btn active" data-page="homePage">Home</button>
-        <button class="menu-btn" data-page="historyPage">History</button>
-        <button class="menu-btn" data-page="projectsPage">Projects</button>
-        <button class="menu-btn" data-page="collectionsPage">Collections</button>
-        <button class="menu-btn" data-page="environmentsPage">Environments</button>
-        <button class="menu-btn" data-page="presetsPage">Trigger Presets</button>
-        <button class="menu-btn" data-page="triggerPage">Release Trigger</button>
-        <button class="menu-btn" data-page="settingsPage">Settings</button>
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="side-top">
+      <div class="brand">Newman Console</div>
+      <div class="sub">Enterprise API Test Orchestrator</div>
+    </div>
+
+    <div class="wizard-progress" id="wizardProgress">
+      <div>Setup progress: <strong id="wizardCount">0 / 6</strong> steps complete</div>
+      <div class="wizard-progress-bar"><div class="wizard-progress-fill" id="wizardFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="side-section" style="margin-top:10px;">
+      <div class="side-label">Monitor</div>
+      <button class="menu-btn active" data-page="homePage">
+        <span class="icon">🏠</span> Home
+      </button>
+      <button class="menu-btn" data-page="historyPage">
+        <span class="icon">📋</span> Run History
+      </button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">Setup Steps</div>
+      <button class="menu-btn" data-page="settingsPage">
+        <span class="icon">⚙️</span> 1 · Settings
+        <span class="step-badge" id="stepBadge1">1</span>
+      </button>
+      <button class="menu-btn" data-page="projectsPage">
+        <span class="icon">📁</span> 2 · Projects
+        <span class="step-badge" id="stepBadge2">2</span>
+      </button>
+      <button class="menu-btn" data-page="collectionsPage">
+        <span class="icon">📄</span> 3 · Collections
+        <span class="step-badge" id="stepBadge3">3</span>
+      </button>
+      <button class="menu-btn" data-page="environmentsPage">
+        <span class="icon">🌍</span> 4 · Environments
+        <span class="step-badge" id="stepBadge4">4</span>
+      </button>
+      <button class="menu-btn" data-page="presetsPage">
+        <span class="icon">🎯</span> 5 · Presets
+        <span class="step-badge" id="stepBadge5">5</span>
+      </button>
+      <button class="menu-btn" data-page="triggerPage">
+        <span class="icon">🚀</span> 6 · Trigger Run
+        <span class="step-badge" id="stepBadge6">6</span>
+      </button>
+    </div>
+
+    <div class="side-footer">
+      <span class="health-dot" id="healthDot"></span><span id="healthText">Checking...</span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="page-title" id="pageTitle">Home</div>
+        <div class="page-desc" id="pageDesc">Live run status and quick details</div>
       </div>
-
-      <div class="side-footer" id="globalSummary">Health: unknown</div>
-    </aside>
-
-    <main class="main">
-      <div class="top">
-        <div>
-          <div class="title" id="pageTitle">Home</div>
-          <div class="badge" id="pageHint">Running runs and latest status</div>
-        </div>
-        <button class="btn" id="themeToggle">Toggle Theme</button>
+      <div class="topbar-right">
+        <button class="btn ghost sm" id="themeToggle">🌓 Theme</button>
+        <button class="btn sm" id="globalReloadBtn">↺ Reload</button>
       </div>
+    </div>
 
-      <section class="card">
-        <div class="context-grid">
-          <div class="field">
-            <label for="globalProjectSelect">Active Project Context</label>
-            <select id="globalProjectSelect"></select>
-          </div>
-          <div class="field">
-            <label for="historyProjectFilter">History Project Filter</label>
-            <select id="historyProjectFilter"></select>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="btn" id="globalReloadBtn">Reload Context</button>
-          <span class="muted" id="assetSummary">Choose a project to load collections, environments, and presets.</span>
-        </div>
-      </section>
+    <div class="content" style="padding-bottom:0; gap:0;">
+      <div class="ctx-bar">
+        <label for="globalProjectSelect">Active Project</label>
+        <select id="globalProjectSelect" style="max-width:220px;"></select>
+        <div class="filter-sep"></div>
+        <label for="historyProjectFilter">History filter</label>
+        <select id="historyProjectFilter" style="max-width:200px;"></select>
+        <span class="ctx-stat" id="assetSummary">No project loaded</span>
+      </div>
+    </div>
 
-      <section id="homePage" class="page active layout">
+    <div class="content">
+
+      <!-- HOME -->
+      <div id="homePage" class="page active">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Home</strong> — Shows live running tests and lets you inspect any run in detail. Click any Run ID row to load its full report here.
+        </div>
         <div class="card">
-          <h2>Current Running Runs</h2>
-          <div class="muted" id="runningMeta">Loading...</div>
+          <div class="card-header">
+            <div><div class="card-title">🔄 Currently Running</div><div class="card-hint">Live runs for the active project</div></div>
+            <button class="btn sm" id="homeRefreshBtn">↺ Refresh</button>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Run ID</th>
-                  <th>Status</th>
-                  <th>Mode</th>
-                  <th>Started</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Run ID</th><th>Status</th><th>Mode</th><th>Started</th></tr></thead>
               <tbody id="runningBody"></tbody>
             </table>
           </div>
+          <div class="card-footer" id="runningMeta">Waiting...</div>
         </div>
-
-        <div class="card">
-          <h2>Run Detail</h2>
-          <div id="homeEmpty" class="muted">Select a run from Home or History.</div>
-          <div id="homeDetail" style="display:none;">
-            <div class="mono" id="detailId"></div>
-            <div style="margin:8px 0;"><span id="detailStatus" class="status">unknown</span></div>
-            <div class="kpis">
-              <div class="kpi"><div class="v" id="kpiReq">-</div><div class="k">Requests</div></div>
-              <div class="kpi"><div class="v" id="kpiAssert">-</div><div class="k">Assertions</div></div>
-              <div class="kpi"><div class="v" id="kpiFail">-</div><div class="k">Failed</div></div>
-              <div class="kpi"><div class="v" id="kpiDur">-</div><div class="k">Duration</div></div>
+        <div class="card" style="margin-top:0;">
+          <div class="card-header">
+            <div><div class="card-title">🔍 Run Detail</div><div class="card-hint">Click any Run ID above or in History to load its full report here</div></div>
+          </div>
+          <div class="card-body">
+            <div id="homeEmpty" class="muted" style="padding:14px 0;">← Select a run ID from the Running table above or from Run History to view its full report here.</div>
+            <div id="homeDetail" style="display:none;">
+              <div class="mono" id="detailId" style="color:var(--muted); margin-bottom:8px;"></div>
+              <span id="detailStatus" class="chip unknown" style="margin-bottom:12px; display:inline-flex;"></span>
+              <div class="kpi-row">
+                <div class="kpi"><div class="v" id="kpiReq">-</div><div class="k">Requests</div></div>
+                <div class="kpi"><div class="v" id="kpiAssert">-</div><div class="k">Assertions</div></div>
+                <div class="kpi fail"><div class="v" id="kpiFail">-</div><div class="k">Failed</div></div>
+                <div class="kpi"><div class="v" id="kpiDur">-</div><div class="k">Duration</div></div>
+              </div>
+              <div class="muted" id="detailResp" style="margin-bottom:10px;"></div>
+              <div class="btn-row" id="artifactLinks" style="margin-bottom:12px;"></div>
+              <div id="failureBox"></div>
             </div>
-            <div class="muted" id="detailResp">Avg response: -</div>
-            <div class="actions" id="artifactLinks"></div>
-            <div id="failureBox"></div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section id="historyPage" class="page layout">
+      <!-- HISTORY -->
+      <div id="historyPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Run History</strong> — Filter by status, mode, or project using the bar below. Click any row to view the full run report on the Home page. Use <em>Load More</em> to fetch additional rows without losing the ones already shown.
+        </div>
         <div class="card">
-          <h2>Run History</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="statusFilter">Status</label>
-              <select id="statusFilter">
-                <option value="">all</option>
-                <option value="running">running</option>
-                <option value="passed">passed</option>
-                <option value="failed">failed</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="modeFilter">Mode</label>
-              <select id="modeFilter">
-                <option value="">all</option>
-                <option value="ci">ci</option>
-                <option value="full">full</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="sortFilter">Sort</label>
-              <select id="sortFilter">
-                <option value="desc" selected>newest first</option>
-                <option value="asc">oldest first</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="limit">Page Size</label>
-              <input id="limit" type="number" min="1" max="200" value="25" />
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn" id="historyRefresh">Refresh</button>
-            <button class="btn" id="prevBtn">Prev</button>
-            <button class="btn" id="nextBtn">Next</button>
-            <span class="muted" id="historyMeta"></span>
+          <div class="filter-bar">
+            <label>Status</label>
+            <select id="statusFilter">
+              <option value="">All</option>
+              <option value="running">Running</option>
+              <option value="passed">Passed</option>
+              <option value="failed">Failed</option>
+            </select>
+            <div class="filter-sep"></div>
+            <label>Mode</label>
+            <select id="modeFilter">
+              <option value="">All</option>
+              <option value="ci">CI</option>
+              <option value="full">Full</option>
+            </select>
+            <div class="filter-sep"></div>
+            <label>Sort</label>
+            <select id="sortFilter">
+              <option value="desc" selected>Newest first</option>
+              <option value="asc">Oldest first</option>
+            </select>
+            <div class="filter-sep"></div>
+            <label>Batch</label>
+            <input id="limit" type="number" min="5" max="100" value="25" />
+            <button class="btn sm" id="historyRefresh">↺ Refresh</button>
+            <span class="filter-count" id="historyMeta"></span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Run ID</th>
+                  <th style="min-width:190px;">Run ID</th>
                   <th>Status</th>
                   <th>Mode</th>
-                  <th>Assertions</th>
+                  <th>Project</th>
+                  <th>Assertions (exec / fail)</th>
                   <th>Started</th>
                 </tr>
               </thead>
               <tbody id="historyBody"></tbody>
             </table>
           </div>
-        </div>
-      </section>
-
-      <section id="projectsPage" class="page layout">
-        <div class="card">
-          <h2>Create Project</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="newProjectId">Project ID</label>
-              <input id="newProjectId" placeholder="booking-stage" />
-            </div>
-            <div class="field">
-              <label for="newProjectName">Project Name</label>
-              <input id="newProjectName" placeholder="Booking Stage" />
-            </div>
-            <div class="field">
-              <label for="newCollectionFile">Collection File</label>
-              <input id="newCollectionFile" placeholder="booking-stage.postman_collection.json" />
-            </div>
-            <div class="field">
-              <label for="newEnvironmentFile">Environment File</label>
-              <input id="newEnvironmentFile" placeholder="booking-stage.postman_environment.json" />
-            </div>
+          <div class="load-more-wrap">
+            <button class="btn" id="loadMoreBtn" style="display:none;">Load More ↓</button>
+            <span class="muted" id="loadMoreMeta"></span>
           </div>
-          <div class="actions">
-            <button class="btn primary" id="createProjectBtn">Create Project</button>
-            <button class="btn" id="refreshProjectsBtn">Refresh Projects</button>
-          </div>
-          <div class="muted" id="projectMsg">Create a project and select it from the project cards.</div>
         </div>
+      </div>
 
-        <div class="card">
-          <h2>Project Cards</h2>
-          <div class="section-note">Click a card to set active project context for all pages.</div>
-          <div id="projectCards" class="project-grid"></div>
+      <!-- SETTINGS step 1 -->
+      <div id="settingsPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Step 1 · Settings</strong> — Configure the base URL of your Newman service and the security token. These are saved in your browser and used by every page. Start here before using other features.
         </div>
-      </section>
-
-      <section id="collectionsPage" class="page layout">
         <div class="card">
-          <h2>Upload Collection JSON</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="collectionAssetId">Collection ID</label>
-              <input id="collectionAssetId" placeholder="restful-booker-core" />
-            </div>
-            <div class="field">
-              <label for="collectionAssetName">Collection Name</label>
-              <input id="collectionAssetName" placeholder="Restful Booker Core" />
-            </div>
-            <div class="field" style="grid-column: 1 / -1;">
-              <label for="collectionFileInput">Collection JSON File</label>
-              <input id="collectionFileInput" type="file" accept=".json,application/json" />
-            </div>
+          <div class="card-header">
+            <div><div class="card-title">Connection Settings</div><div class="card-hint">Used globally across all pages</div></div>
           </div>
-          <div class="actions">
-            <button class="btn primary" id="uploadCollectionBtn">Upload Collection</button>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>Base URL</label>
+                <input id="baseUrl" value="http://localhost:8080" placeholder="http://your-service:8080" />
+              </div>
+              <div class="field">
+                <label>Trigger Token (x-trigger-token)</label>
+                <input id="token" type="password" placeholder="Leave blank if not set" />
+              </div>
+            </div>
+            <hr class="divider" />
+            <div class="field-row">
+              <div class="field">
+                <label>Polling Interval (ms)</label>
+                <input id="pollInterval" type="number" min="1000" value="2500" />
+              </div>
+              <div class="field">
+                <label>History Batch Size</label>
+                <input id="defaultPageSize" type="number" min="5" max="100" value="25" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="saveSettings">✓ Save &amp; Connect</button>
+              <button class="btn" id="resetSettings">Reset Defaults</button>
+            </div>
+            <div id="settingsMsg"></div>
           </div>
-          <div class="muted" id="collectionMsg"></div>
+          <div class="card-footer">After saving, click <strong>↺ Reload</strong> in the top bar to confirm connection. Then proceed to <strong>Step 2 · Projects</strong>.</div>
         </div>
+      </div>
 
+      <!-- PROJECTS step 2 -->
+      <div id="projectsPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Step 2 · Projects</strong> — A project is a named workspace with its own collections, environments, and presets. Create one project per API area (e.g. Booking-DEV, Booking-QA). Click a project card to make it the active context for the steps that follow.
+        </div>
         <div class="card">
-          <h2>Stored Collections</h2>
+          <div class="card-header">
+            <div><div class="card-title">Create New Project</div><div class="card-hint">An ID is auto-generated from the name</div></div>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>Project Name *</label>
+                <input id="newProjectName" placeholder="e.g. Booking Stage" />
+              </div>
+              <div class="field">
+                <label>Default Collection File <span class="muted">(optional)</span></label>
+                <input id="newCollectionFile" placeholder="booking.postman_collection.json" />
+              </div>
+              <div class="field">
+                <label>Default Environment File <span class="muted">(optional)</span></label>
+                <input id="newEnvironmentFile" placeholder="dev.postman_environment.json" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="createProjectBtn">+ Create Project</button>
+              <button class="btn" id="refreshProjectsBtn">↺ Refresh List</button>
+            </div>
+            <div id="projectMsg" class="muted" style="margin-top:8px;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Your Projects</div><div class="card-hint">Click a card to set it as the active project — all other pages use this context</div></div>
+          </div>
+          <div class="card-body">
+            <div id="projectCards" class="project-grid"></div>
+          </div>
+          <div class="card-footer">After selecting a project, go to <strong>Step 3 · Collections</strong>.</div>
+        </div>
+      </div>
+
+      <!-- COLLECTIONS step 3 -->
+      <div id="collectionsPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Step 3 · Collections</strong> — Upload your Postman collection JSON into the active project. File content is stored in the database so it survives container restarts. You can upload multiple collections.
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Upload Collection JSON</div><div class="card-hint">Active project: <strong id="collActiveProject">—</strong></div></div>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>Collection Name <span class="muted">(auto-filled from file)</span></label>
+                <input id="collectionAssetName" placeholder="Restful Booker Core" />
+              </div>
+              <div class="field" style="grid-column: span 2;">
+                <label>Collection JSON File *</label>
+                <input id="collectionFileInput" type="file" accept=".json,application/json" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="uploadCollectionBtn">⬆ Upload Collection</button>
+              <button class="btn" id="clearCollectionEditBtn" style="display:none;">Clear Replace Target</button>
+            </div>
+            <div class="muted" id="collectionEditHint" style="margin-top:8px;"></div>
+            <div id="collectionMsg" class="muted" style="margin-top:8px;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Stored Collections</div><div class="card-hint">All collections in the active project</div></div>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>File</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Auto ID</th><th>Name</th><th>Uploaded File</th><th>Uploaded At</th><th>Actions</th></tr></thead>
               <tbody id="collectionListBody"></tbody>
             </table>
           </div>
+          <div class="card-footer">Once a collection is uploaded, go to <strong>Step 4 · Environments</strong>.</div>
         </div>
-      </section>
+      </div>
 
-      <section id="environmentsPage" class="page layout">
-        <div class="card">
-          <h2>Upload Environment JSON</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="environmentAssetId">Environment ID</label>
-              <input id="environmentAssetId" placeholder="dev" />
-            </div>
-            <div class="field">
-              <label for="environmentAssetName">Environment Name</label>
-              <input id="environmentAssetName" placeholder="Development" />
-            </div>
-            <div class="field" style="grid-column: 1 / -1;">
-              <label for="environmentFileInput">Environment JSON File</label>
-              <input id="environmentFileInput" type="file" accept=".json,application/json" />
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn primary" id="uploadEnvironmentBtn">Upload Environment</button>
-          </div>
-          <div class="muted" id="environmentMsg"></div>
+      <!-- ENVIRONMENTS step 4 -->
+      <div id="environmentsPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Step 4 · Environments</strong> — Upload one environment file per deployment target (DEV, QA, UAT, PROD). Each environment pairs with your collection in a preset. You can upload as many environments as you need.
         </div>
-
         <div class="card">
-          <h2>Stored Environments</h2>
+          <div class="card-header">
+            <div><div class="card-title">Upload Environment JSON</div><div class="card-hint">Active project: <strong id="envActiveProject">—</strong></div></div>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>Environment Name <span class="muted">(auto-filled from file)</span></label>
+                <input id="environmentAssetName" placeholder="DEV, QA, UAT..." />
+              </div>
+              <div class="field" style="grid-column: span 2;">
+                <label>Environment JSON File *</label>
+                <input id="environmentFileInput" type="file" accept=".json,application/json" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="uploadEnvironmentBtn">⬆ Upload Environment</button>
+              <button class="btn" id="clearEnvironmentEditBtn" style="display:none;">Clear Replace Target</button>
+            </div>
+            <div class="muted" id="environmentEditHint" style="margin-top:8px;"></div>
+            <div id="environmentMsg" class="muted" style="margin-top:8px;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Stored Environments</div><div class="card-hint">All environments in the active project</div></div>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>File</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Auto ID</th><th>Name</th><th>Uploaded File</th><th>Uploaded At</th><th>Actions</th></tr></thead>
               <tbody id="environmentListBody"></tbody>
             </table>
           </div>
+          <div class="card-footer">Once at least one environment is uploaded, go to <strong>Step 5 · Presets</strong>.</div>
         </div>
-      </section>
+      </div>
 
-      <section id="presetsPage" class="page layout">
-        <div class="card">
-          <h2>Create Trigger Preset</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="presetIdInput">Preset ID</label>
-              <input id="presetIdInput" placeholder="dev-smoke" />
-            </div>
-            <div class="field">
-              <label for="presetNameInput">Preset Name</label>
-              <input id="presetNameInput" placeholder="DEV Smoke" />
-            </div>
-            <div class="field">
-              <label for="presetCollectionSelect">Collection</label>
-              <select id="presetCollectionSelect"></select>
-            </div>
-            <div class="field">
-              <label for="presetEnvironmentSelect">Environment</label>
-              <select id="presetEnvironmentSelect"></select>
-            </div>
-          </div>
-          <div class="actions">
-            <label><input type="checkbox" id="presetDefaultCheckbox" /> Mark as default preset</label>
-            <button class="btn primary" id="createPresetBtn">Save Preset</button>
-          </div>
-          <div class="muted" id="presetMsg"></div>
+      <!-- PRESETS step 5 -->
+      <div id="presetsPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Step 5 · Presets</strong> — A preset binds one collection with one environment so you can trigger them together by name (e.g. "DEV Smoke", "QA Regression"). Mark one as default to use it automatically when no preset is specified in the trigger call.
         </div>
-
         <div class="card">
-          <h2>Saved Presets</h2>
+          <div class="card-header">
+            <div><div class="card-title">Create Trigger Preset</div><div class="card-hint">Active project: <strong id="presetActiveProject">—</strong></div></div>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>Preset Name *</label>
+                <input id="presetNameInput" placeholder="DEV Smoke" />
+              </div>
+              <div class="field">
+                <label>Collection *</label>
+                <select id="presetCollectionSelect"></select>
+              </div>
+              <div class="field">
+                <label>Environment *</label>
+                <select id="presetEnvironmentSelect"></select>
+              </div>
+            </div>
+            <div class="btn-row">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                <input type="checkbox" id="presetDefaultCheckbox" /> Mark as default preset
+              </label>
+              <button class="btn primary" id="createPresetBtn">✓ Save Preset</button>
+            </div>
+            <div id="presetMsg" class="muted" style="margin-top:8px;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Saved Presets</div><div class="card-hint">Available presets for this project</div></div>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Preset</th>
-                  <th>Collection</th>
-                  <th>Environment</th>
-                  <th>Default</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Preset ID</th><th>Name</th><th>Collection</th><th>Environment</th><th>Default</th><th>Created</th></tr></thead>
               <tbody id="presetListBody"></tbody>
             </table>
           </div>
+          <div class="card-footer">Once a preset is saved, go to <strong>Step 6 · Trigger Run</strong>.</div>
         </div>
-      </section>
+      </div>
 
-      <section id="triggerPage" class="page layout">
+      <!-- TRIGGER step 6 -->
+      <div id="triggerPage" class="page">
+        <div class="guide-box" style="margin-bottom:12px;">
+          <strong>Step 6 · Trigger Run</strong> — Select your project and preset, choose CI (fast, JUnit only) or Full (JUnit + HTML report), then click Trigger. Copy the generated snippet below to paste into your CI/CD pipeline.
+        </div>
         <div class="card">
-          <h2>Release Trigger</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="triggerProjectSelect">Project</label>
-              <select id="triggerProjectSelect"></select>
-            </div>
-            <div class="field">
-              <label for="presetSelect">Preset</label>
-              <select id="presetSelect"></select>
-            </div>
-            <div class="field">
-              <label for="mode">Mode</label>
-              <select id="mode">
-                <option value="ci">ci</option>
-                <option value="full" selected>full</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="waitTimeout">Wait Timeout (seconds)</label>
-              <input id="waitTimeout" type="number" min="1" value="180" />
-            </div>
+          <div class="card-header">
+            <div><div class="card-title">Run Configuration</div><div class="card-hint" id="presetMeta">Select a preset to see details</div></div>
+            <button class="btn sm" id="healthBtn">⬥ Health</button>
           </div>
-          <div class="muted" id="presetMeta">Default preset or legacy project files will be used.</div>
-          <div class="actions">
-            <label><input type="checkbox" id="waitForCompletion" checked /> Wait for completion in this call</label>
-            <button class="btn primary" id="runBtn">Trigger Run</button>
-            <button class="btn" id="healthBtn">Health</button>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>Project</label>
+                <select id="triggerProjectSelect"></select>
+              </div>
+              <div class="field">
+                <label>Preset</label>
+                <select id="presetSelect"></select>
+              </div>
+              <div class="field">
+                <label>Mode</label>
+                <select id="mode">
+                  <option value="ci">CI — JUnit + CLI only (fast)</option>
+                  <option value="full" selected>Full — JUnit + JSON + HTML report</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Wait Timeout (seconds)</label>
+                <input id="waitTimeout" type="number" min="1" value="180" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                <input type="checkbox" id="waitForCompletion" checked /> Wait for completion in this API call
+              </label>
+              <button class="btn primary" id="runBtn">🚀 Trigger Run</button>
+            </div>
+            <div id="triggerMsg" class="muted" style="margin-top:8px;"></div>
           </div>
-          <div class="muted" id="triggerMsg">Ready.</div>
         </div>
-
         <div class="card">
-          <h2>Release Snippet</h2>
-          <div class="actions">
-            <button class="btn" id="copyCurlBtn">Copy Curl</button>
-            <button class="btn" id="copyPythonBtn">Copy Python</button>
-          </div>
-          <div class="muted" id="snippetMsg">Generated from selected project and preset.</div>
-          <div class="two-col" style="margin-top:10px;">
-            <div>
-              <h3>Curl</h3>
-              <pre class="snippet-box" id="curlSnippet"></pre>
-            </div>
-            <div>
-              <h3>Python</h3>
-              <pre class="snippet-box" id="pythonSnippet"></pre>
+          <div class="card-header">
+            <div><div class="card-title">Pipeline Snippets</div><div class="card-hint" id="snippetMsg">Copy the right snippet for your CI tool</div></div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn sm" id="copyCurlBtn">Copy Curl</button>
+              <button class="btn sm" id="copyPythonBtn">Copy Python</button>
+              <button class="btn sm" id="copyPostRequestBtn">Copy POST</button>
             </div>
           </div>
+          <div class="snippet-tabs" id="snippetTabs">
+            <button class="stab active" data-pane="pane-curl">Curl</button>
+            <button class="stab" data-pane="pane-python">Python</button>
+            <button class="stab" data-pane="pane-post">POST Request</button>
+          </div>
+          <div id="pane-curl" class="snippet-pane active"><pre class="snippet-box" id="curlSnippet"></pre></div>
+          <div id="pane-python" class="snippet-pane"><pre class="snippet-box" id="pythonSnippet"></pre></div>
+          <div id="pane-post" class="snippet-pane"><pre class="snippet-box" id="postRequestSnippet"></pre></div>
         </div>
-      </section>
+      </div>
 
-      <section id="settingsPage" class="page layout">
-        <div class="card">
-          <h2>Global Settings</h2>
-          <div class="field-grid">
-            <div class="field">
-              <label for="baseUrl">Base URL</label>
-              <input id="baseUrl" value="http://localhost:8080" />
-            </div>
-            <div class="field">
-              <label for="token">Trigger Token</label>
-              <input id="token" placeholder="x-trigger-token" />
-            </div>
-            <div class="field">
-              <label for="pollInterval">Polling Interval (ms)</label>
-              <input id="pollInterval" type="number" min="1000" value="2500" />
-            </div>
-            <div class="field">
-              <label for="defaultPageSize">Default Page Size</label>
-              <input id="defaultPageSize" type="number" min="1" max="200" value="25" />
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn primary" id="saveSettings">Save Settings</button>
-            <button class="btn" id="resetSettings">Reset Defaults</button>
-          </div>
-          <div class="muted" id="settingsMsg"></div>
-        </div>
-      </section>
-    </main>
-  </div>
+    </div>
+  </main>
+</div>
 
-  <script>
-    const state = {
-      offset: 0,
-      total: 0,
-      selectedRunId: null,
-      historyItems: [],
-      selectedRunIndex: -1,
-      projects: [],
-      collections: [],
-      environments: [],
-      presets: [],
-      pollTimer: null,
-      settings: {
-        baseUrl: "http://localhost:8080",
-        token: "",
-        pollInterval: 2500,
-        defaultPageSize: 25,
-        currentProjectId: "default",
-        theme: "light"
-      }
-    };
+<script>
+  const state = {
+    historyAccumulated: [],
+    historyOffset: 0,
+    historyTotal: 0,
+    projectResourceRequestId: 0,
+    loadedProjectId: "",
+    projects: [],
+    collections: [],
+    environments: [],
+    presets: [],
+    assetEdit: {
+      collection: null,
+      environment: null
+    },
+    settings: {
+      baseUrl: "http://localhost:8080",
+      token: "",
+      pollInterval: 2500,
+      defaultPageSize: 25,
+      currentProjectId: "default",
+      theme: "light"
+    },
+    wizard: { s1:false, s2:false, s3:false, s4:false, s5:false, s6:false }
+  };
 
-    const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
-    const ui = {
-      menuButtons: Array.from(document.querySelectorAll(".menu-btn")),
-      pageTitle: $("pageTitle"),
-      pageHint: $("pageHint"),
-      globalSummary: $("globalSummary"),
-      themeToggle: $("themeToggle"),
-      globalProjectSelect: $("globalProjectSelect"),
-      historyProjectFilter: $("historyProjectFilter"),
-      globalReloadBtn: $("globalReloadBtn"),
-      assetSummary: $("assetSummary"),
+  const ui = {
+    menuBtns:             Array.from(document.querySelectorAll(".menu-btn")),
+    pageTitle:            $("pageTitle"),
+    pageDesc:             $("pageDesc"),
+    themeToggle:          $("themeToggle"),
+    globalReloadBtn:      $("globalReloadBtn"),
+    globalProjectSelect:  $("globalProjectSelect"),
+    historyProjectFilter: $("historyProjectFilter"),
+    assetSummary:         $("assetSummary"),
+    healthDot:            $("healthDot"),
+    healthText:           $("healthText"),
+    wizardCount:          $("wizardCount"),
+    wizardFill:           $("wizardFill"),
+    homeRefreshBtn:  $("homeRefreshBtn"),
+    runningBody:     $("runningBody"),
+    runningMeta:     $("runningMeta"),
+    homeEmpty:       $("homeEmpty"),
+    homeDetail:      $("homeDetail"),
+    detailId:        $("detailId"),
+    detailStatus:    $("detailStatus"),
+    kpiReq:          $("kpiReq"),
+    kpiAssert:       $("kpiAssert"),
+    kpiFail:         $("kpiFail"),
+    kpiDur:          $("kpiDur"),
+    detailResp:      $("detailResp"),
+    artifactLinks:   $("artifactLinks"),
+    failureBox:      $("failureBox"),
+    statusFilter:  $("statusFilter"),
+    modeFilter:    $("modeFilter"),
+    sortFilter:    $("sortFilter"),
+    limit:         $("limit"),
+    historyRefresh:$("historyRefresh"),
+    historyBody:   $("historyBody"),
+    historyMeta:   $("historyMeta"),
+    loadMoreBtn:   $("loadMoreBtn"),
+    loadMoreMeta:  $("loadMoreMeta"),
+    baseUrl:        $("baseUrl"),
+    token:          $("token"),
+    pollInterval:   $("pollInterval"),
+    defaultPageSize:$("defaultPageSize"),
+    saveSettings:   $("saveSettings"),
+    resetSettings:  $("resetSettings"),
+    settingsMsg:    $("settingsMsg"),
+    newProjectName:     $("newProjectName"),
+    newCollectionFile:  $("newCollectionFile"),
+    newEnvironmentFile: $("newEnvironmentFile"),
+    createProjectBtn:   $("createProjectBtn"),
+    refreshProjectsBtn: $("refreshProjectsBtn"),
+    projectMsg:         $("projectMsg"),
+    projectCards:       $("projectCards"),
+    collActiveProject:   $("collActiveProject"),
+    collectionAssetName: $("collectionAssetName"),
+    collectionFileInput: $("collectionFileInput"),
+    uploadCollectionBtn: $("uploadCollectionBtn"),
+    collectionMsg:       $("collectionMsg"),
+    collectionListBody:  $("collectionListBody"),
+    clearCollectionEditBtn: $("clearCollectionEditBtn"),
+    collectionEditHint:   $("collectionEditHint"),
+    envActiveProject:     $("envActiveProject"),
+    environmentAssetName: $("environmentAssetName"),
+    environmentFileInput: $("environmentFileInput"),
+    uploadEnvironmentBtn: $("uploadEnvironmentBtn"),
+    environmentMsg:       $("environmentMsg"),
+    environmentListBody:  $("environmentListBody"),
+    clearEnvironmentEditBtn: $("clearEnvironmentEditBtn"),
+    environmentEditHint:   $("environmentEditHint"),
+    presetActiveProject:    $("presetActiveProject"),
+    presetNameInput:        $("presetNameInput"),
+    presetCollectionSelect: $("presetCollectionSelect"),
+    presetEnvironmentSelect:$("presetEnvironmentSelect"),
+    presetDefaultCheckbox:  $("presetDefaultCheckbox"),
+    createPresetBtn:        $("createPresetBtn"),
+    presetMsg:              $("presetMsg"),
+    presetListBody:         $("presetListBody"),
+    triggerProjectSelect: $("triggerProjectSelect"),
+    presetSelect:         $("presetSelect"),
+    presetMeta:           $("presetMeta"),
+    mode:                 $("mode"),
+    waitTimeout:          $("waitTimeout"),
+    waitForCompletion:    $("waitForCompletion"),
+    runBtn:               $("runBtn"),
+    healthBtn:            $("healthBtn"),
+    triggerMsg:           $("triggerMsg"),
+    copyCurlBtn:          $("copyCurlBtn"),
+    copyPythonBtn:        $("copyPythonBtn"),
+    copyPostRequestBtn:   $("copyPostRequestBtn"),
+    curlSnippet:          $("curlSnippet"),
+    pythonSnippet:        $("pythonSnippet"),
+    postRequestSnippet:   $("postRequestSnippet"),
+    snippetMsg:           $("snippetMsg"),
+    snippetTabs:          $("snippetTabs")
+  };
 
-      runningBody: $("runningBody"),
-      runningMeta: $("runningMeta"),
-      homeEmpty: $("homeEmpty"),
-      homeDetail: $("homeDetail"),
-      detailId: $("detailId"),
-      detailStatus: $("detailStatus"),
-      kpiReq: $("kpiReq"),
-      kpiAssert: $("kpiAssert"),
-      kpiFail: $("kpiFail"),
-      kpiDur: $("kpiDur"),
-      detailResp: $("detailResp"),
-      artifactLinks: $("artifactLinks"),
-      failureBox: $("failureBox"),
+  const pageMeta = {
+    homePage:         { title: "Home",              desc: "Live run status and quick run detail" },
+    historyPage:      { title: "Run History",       desc: "Filter, browse, and inspect all past runs" },
+    settingsPage:     { title: "Step 1 - Settings",     desc: "Configure service URL and token - required first step" },
+    projectsPage:     { title: "Step 2 - Projects",     desc: "Create and select a project workspace" },
+    collectionsPage:  { title: "Step 3 - Collections",  desc: "Upload your Postman collection JSON file" },
+    environmentsPage: { title: "Step 4 - Environments", desc: "Upload environment files - one per deployment target" },
+    presetsPage:      { title: "Step 5 - Presets",      desc: "Bind a collection and environment into a reusable preset" },
+    triggerPage:      { title: "Step 6 - Trigger Run",  desc: "Launch a test run and copy pipeline snippets" }
+  };
 
-      statusFilter: $("statusFilter"),
-      modeFilter: $("modeFilter"),
-      sortFilter: $("sortFilter"),
-      limit: $("limit"),
-      historyRefresh: $("historyRefresh"),
-      prevBtn: $("prevBtn"),
-      nextBtn: $("nextBtn"),
-      historyMeta: $("historyMeta"),
-      historyBody: $("historyBody"),
+  function loadSettings() {
+    try { const r = localStorage.getItem("newman.enterprise.v2"); if (r) state.settings = { ...state.settings, ...JSON.parse(r) }; } catch {}
+    try { const w = localStorage.getItem("newman.wizard"); if (w) state.wizard = { ...state.wizard, ...JSON.parse(w) }; } catch {}
+  }
 
-      projectCards: $("projectCards"),
-      newProjectId: $("newProjectId"),
-      newProjectName: $("newProjectName"),
-      newCollectionFile: $("newCollectionFile"),
-      newEnvironmentFile: $("newEnvironmentFile"),
-      createProjectBtn: $("createProjectBtn"),
-      refreshProjectsBtn: $("refreshProjectsBtn"),
-      projectMsg: $("projectMsg"),
+  function persistSettings() {
+    localStorage.setItem("newman.enterprise.v2", JSON.stringify(state.settings));
+  }
 
-      collectionAssetId: $("collectionAssetId"),
-      collectionAssetName: $("collectionAssetName"),
-      collectionFileInput: $("collectionFileInput"),
-      uploadCollectionBtn: $("uploadCollectionBtn"),
-      collectionMsg: $("collectionMsg"),
-      collectionListBody: $("collectionListBody"),
+  function persistWizard() {
+    localStorage.setItem("newman.wizard", JSON.stringify(state.wizard));
+  }
 
-      environmentAssetId: $("environmentAssetId"),
-      environmentAssetName: $("environmentAssetName"),
-      environmentFileInput: $("environmentFileInput"),
-      uploadEnvironmentBtn: $("uploadEnvironmentBtn"),
-      environmentMsg: $("environmentMsg"),
-      environmentListBody: $("environmentListBody"),
+  function applySettingsToForm() {
+    ui.baseUrl.value         = state.settings.baseUrl;
+    ui.token.value           = state.settings.token;
+    ui.pollInterval.value    = String(state.settings.pollInterval);
+    ui.defaultPageSize.value = String(state.settings.defaultPageSize);
+    ui.limit.value           = String(state.settings.defaultPageSize);
+    document.documentElement.dataset.theme = state.settings.theme;
+  }
 
-      presetIdInput: $("presetIdInput"),
-      presetNameInput: $("presetNameInput"),
-      presetCollectionSelect: $("presetCollectionSelect"),
-      presetEnvironmentSelect: $("presetEnvironmentSelect"),
-      presetDefaultCheckbox: $("presetDefaultCheckbox"),
-      createPresetBtn: $("createPresetBtn"),
-      presetMsg: $("presetMsg"),
-      presetListBody: $("presetListBody"),
+  function updateWizard() {
+    const steps = [state.wizard.s1, state.wizard.s2, state.wizard.s3, state.wizard.s4, state.wizard.s5, state.wizard.s6];
+    const done = steps.filter(Boolean).length;
+    ui.wizardCount.textContent = done + " / 6";
+    ui.wizardFill.style.width  = Math.round(done / 6 * 100) + "%";
+    steps.forEach((ok, i) => {
+      const b = $("stepBadge" + (i + 1));
+      if (!b) return;
+      b.className = "step-badge" + (ok ? " done" : "");
+      b.textContent = ok ? "✓" : String(i + 1);
+    });
+  }
 
-      triggerProjectSelect: $("triggerProjectSelect"),
-      presetSelect: $("presetSelect"),
-      presetMeta: $("presetMeta"),
-      mode: $("mode"),
-      waitTimeout: $("waitTimeout"),
-      waitForCompletion: $("waitForCompletion"),
-      runBtn: $("runBtn"),
-      healthBtn: $("healthBtn"),
-      triggerMsg: $("triggerMsg"),
-      copyCurlBtn: $("copyCurlBtn"),
-      copyPythonBtn: $("copyPythonBtn"),
-      curlSnippet: $("curlSnippet"),
-      pythonSnippet: $("pythonSnippet"),
-      snippetMsg: $("snippetMsg"),
+  function markStep(n, done) {
+    if (done === undefined) done = true;
+    state.wizard["s" + n] = done;
+    persistWizard();
+    updateWizard();
+  }
 
-      baseUrl: $("baseUrl"),
-      token: $("token"),
-      pollInterval: $("pollInterval"),
-      defaultPageSize: $("defaultPageSize"),
-      saveSettings: $("saveSettings"),
-      resetSettings: $("resetSettings"),
-      settingsMsg: $("settingsMsg")
-    };
+  function setPage(pageId) {
+    for (const s of document.querySelectorAll(".page")) s.classList.toggle("active", s.id === pageId);
+    for (const b of ui.menuBtns) b.classList.toggle("active", b.dataset.page === pageId);
+    const m = pageMeta[pageId];
+    if (m) { ui.pageTitle.textContent = m.title; ui.pageDesc.textContent = m.desc; }
+  }
 
-    const pageMeta = {
-      homePage: { title: "Home", hint: "Running runs and quick operational status" },
-      historyPage: { title: "History", hint: "Audit all runs with filters and pagination" },
-      projectsPage: { title: "Projects", hint: "Create and choose project workspaces" },
-      collectionsPage: { title: "Collections", hint: "Upload and manage collection JSON files" },
-      environmentsPage: { title: "Environments", hint: "Upload multiple environment JSON files" },
-      presetsPage: { title: "Trigger Presets", hint: "Bind collection plus environment for release" },
-      triggerPage: { title: "Release Trigger", hint: "Generate and copy endpoint code for pipelines" },
-      settingsPage: { title: "Settings", hint: "Global console configuration used across all pages" }
-    };
+  function authHdrs(extra) {
+    if (!extra) extra = {};
+    if (state.settings.token) extra["x-trigger-token"] = state.settings.token;
+    return extra;
+  }
 
-    function loadSettings() {
-      try {
-        const raw = localStorage.getItem("newman.enterprise.settings");
-        if (raw) {
-          state.settings = { ...state.settings, ...JSON.parse(raw) };
-        }
-      } catch {}
+  async function request(path, opts) {
+    if (!opts) opts = {};
+    const base = state.settings.baseUrl.replace(/\/$/, "");
+    const res  = await fetch(base + path, Object.assign({}, opts, { headers: authHdrs(opts.headers || {}) }));
+    const ct   = res.headers.get("content-type") || "";
+    const data = ct.includes("application/json") ? await res.json() : await res.text();
+    if (!res.ok) throw new Error(typeof data === "string" ? data : (data.error || JSON.stringify(data)));
+    return data;
+  }
+
+  async function requestBlob(path) {
+    const base = state.settings.baseUrl.replace(/\/$/, "");
+    const res  = await fetch(base + path, { headers: authHdrs() });
+    if (!res.ok) throw new Error("Download failed (" + res.status + ")");
+    const blob  = await res.blob();
+    const disp  = res.headers.get("content-disposition") || "";
+    const match = disp.match(/filename="?([^";]+)"?/i);
+    return { blob: blob, fileName: match ? match[1] : "download.bin" };
+  }
+
+  function saveBlob(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function downloadArtifact(path, name) {
+    try { const r = await requestBlob(path); saveBlob(r.blob, name || r.fileName); }
+    catch (e) { ui.triggerMsg.textContent = "Download error: " + e.message; }
+  }
+
+  function showMsg(node, text, type) {
+    node.textContent = text;
+    node.className = "msg-box " + type;
+  }
+
+  function setChip(node, status) {
+    node.className = "chip " + (status || "unknown");
+    node.textContent = status || "unknown";
+  }
+
+  function emptyRow(cols, msg) {
+    return "<tr class=\"empty-row\"><td colspan=\"" + cols + "\">" + msg + "</td></tr>";
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "-";
+    try { return new Date(iso).toLocaleString(); } catch { return iso; }
+  }
+
+  async function loadHealth() {
+    try {
+      const d = await request("/health");
+      ui.healthDot.className = "health-dot ok";
+      ui.healthText.textContent = "OK  run: " + (d.activeRunId || "none");
+      markStep(1);
+    } catch (e) {
+      ui.healthDot.className = "health-dot err";
+      ui.healthText.textContent = "Unreachable: " + state.settings.baseUrl;
     }
+  }
 
-    function saveSettings() {
-      localStorage.setItem("newman.enterprise.settings", JSON.stringify(state.settings));
+  function renderRunRows(tbody, items, cols) {
+    if (!items.length) { tbody.innerHTML = emptyRow(cols, "No runs found"); return; }
+    tbody.innerHTML = "";
+    for (const item of items) {
+      const asr = item.summary && item.summary.assertions;
+      const tr  = document.createElement("tr");
+      var cells = "<td><button class=\"run-link mono\" data-rid=\"" + item.runId + "\">" + item.runId + "</button></td>" +
+        "<td><span class=\"chip " + (item.status || "unknown") + "\">" + (item.status || "unknown") + "</span></td>" +
+        "<td>" + (item.mode || "-") + "</td>";
+      if (cols >= 6) cells += "<td class=\"muted\">" + (item.projectId || "-") + "</td>";
+      if (cols >= 5) cells += "<td>" + (asr ? asr.executed + " / " + asr.failed : "-") + "</td>";
+      cells += "<td class=\"muted\">" + fmtDate(item.startedAt) + "</td>";
+      tr.innerHTML = cells;
+      tr.addEventListener("click", () => openRunDetail(item.runId));
+      tr.querySelector(".run-link").addEventListener("click", function(e) { e.stopPropagation(); openRunDetail(this.dataset.rid); });
+      tbody.appendChild(tr);
     }
+  }
 
-    function applySettingsToUi() {
-      ui.baseUrl.value = state.settings.baseUrl;
-      ui.token.value = state.settings.token;
-      ui.pollInterval.value = String(state.settings.pollInterval);
-      ui.defaultPageSize.value = String(state.settings.defaultPageSize);
-      ui.limit.value = String(state.settings.defaultPageSize);
-      document.documentElement.dataset.theme = state.settings.theme;
+  async function loadRunningList() {
+    try {
+      const p = new URLSearchParams({ status: "running", sort: "desc", limit: "20", offset: "0" });
+      const d = await request("/runs?" + p.toString());
+      ui.runningMeta.textContent = d.count + " active run(s)";
+      renderRunRows(ui.runningBody, d.items || [], 4);
+    } catch (e) {
+      ui.runningMeta.textContent = "Error: " + e.message;
+      ui.runningBody.innerHTML = emptyRow(4, "Could not load running runs");
     }
+  }
 
-    function readSettingsFromForm() {
-      state.settings.baseUrl = ui.baseUrl.value.trim() || "http://localhost:8080";
-      state.settings.token = ui.token.value.trim();
-      state.settings.pollInterval = Math.max(1000, Number(ui.pollInterval.value || 2500));
-      state.settings.defaultPageSize = Math.min(200, Math.max(1, Number(ui.defaultPageSize.value || 25)));
-      state.settings.currentProjectId = ui.globalProjectSelect.value || "default";
-      state.settings.theme = document.documentElement.dataset.theme || "light";
+  function historyQuery(offset) {
+    const p = new URLSearchParams();
+    p.set("limit",  ui.limit.value || String(state.settings.defaultPageSize));
+    p.set("offset", String(offset));
+    if (ui.historyProjectFilter.value) p.set("projectId", ui.historyProjectFilter.value);
+    if (ui.statusFilter.value)         p.set("status",    ui.statusFilter.value);
+    if (ui.modeFilter.value)           p.set("mode",      ui.modeFilter.value);
+    p.set("sort", ui.sortFilter.value || "desc");
+    return p.toString();
+  }
+
+  async function loadHistory(reset) {
+    if (reset === undefined) reset = true;
+    if (reset) { state.historyAccumulated = []; state.historyOffset = 0; }
+    try {
+      const d = await request("/runs?" + historyQuery(state.historyOffset));
+      state.historyTotal = d.total || 0;
+      const batch = d.items || [];
+      state.historyAccumulated.push.apply(state.historyAccumulated, batch);
+      state.historyOffset += batch.length;
+      renderRunRows(ui.historyBody, state.historyAccumulated, 6);
+      ui.historyMeta.textContent = "Showing " + state.historyAccumulated.length + " of " + state.historyTotal;
+      const hasMore = state.historyAccumulated.length < state.historyTotal;
+      ui.loadMoreBtn.style.display = hasMore ? "" : "none";
+      ui.loadMoreMeta.textContent  = hasMore ? (state.historyTotal - state.historyAccumulated.length) + " more available" : "All runs loaded";
+    } catch (e) {
+      ui.historyMeta.textContent = "Error: " + e.message;
+      ui.historyBody.innerHTML   = emptyRow(6, "Could not load history");
     }
+  }
 
-    function setActivePage(pageId) {
-      for (const section of document.querySelectorAll(".page")) {
-        section.classList.toggle("active", section.id === pageId);
-      }
-      for (const button of ui.menuButtons) {
-        button.classList.toggle("active", button.dataset.page === pageId);
-      }
-      ui.pageTitle.textContent = pageMeta[pageId].title;
-      ui.pageHint.textContent = pageMeta[pageId].hint;
-    }
-
-    function authHeaders(extra = {}) {
-      return {
-        ...extra,
-        ...(state.settings.token ? { "x-trigger-token": state.settings.token } : {})
-      };
-    }
-
-    async function request(path, options = {}) {
-      const base = state.settings.baseUrl.replace(/\/$/, "");
-      const response = await fetch(base + path, {
-        ...options,
-        headers: authHeaders(options.headers || {})
-      });
-      const contentType = response.headers.get("content-type") || "";
-      const payload = contentType.includes("application/json") ? await response.json() : await response.text();
-      if (!response.ok) {
-        throw new Error(typeof payload === "string" ? payload : (payload.error || JSON.stringify(payload)));
-      }
-      return payload;
-    }
-
-    async function requestBlob(path) {
-      const base = state.settings.baseUrl.replace(/\/$/, "");
-      const response = await fetch(base + path, { headers: authHeaders() });
-      if (!response.ok) {
-        throw new Error(`Download failed (${response.status})`);
-      }
-      const blob = await response.blob();
-      const disposition = response.headers.get("content-disposition") || "";
-      const match = disposition.match(/filename="?([^";]+)"?/i);
-      return { blob, fileName: match ? match[1] : "download.bin" };
-    }
-
-    function saveBlob(blob, fileName) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    async function downloadArtifact(path, preferredName) {
-      try {
-        const { blob, fileName } = await requestBlob(path);
-        saveBlob(blob, preferredName || fileName);
-      } catch (error) {
-        ui.triggerMsg.textContent = `Download error: ${error.message}`;
-      }
-    }
-
-    function setStatusChip(node, status) {
-      node.className = `status ${status || ""}`;
-      node.textContent = status || "unknown";
-    }
-
-    function slugify(value) {
-      return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    }
-
-    function activeProjectId() {
-      return ui.globalProjectSelect.value || state.settings.currentProjectId || "default";
-    }
-
-    function projectOptions(includeAll = false) {
-      const options = state.projects.map((p) => `<option value="${p.projectId}">${p.name} (${p.projectId})</option>`);
-      if (includeAll) {
-        options.unshift('<option value="">all projects</option>');
-      }
-      return options.join("");
-    }
-
-    function optionMarkup(items, emptyLabel) {
-      if (!items.length) {
-        return `<option value="">${emptyLabel}</option>`;
-      }
-      return items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
-    }
-
-    function renderSimpleTable(tbody, items, columns, emptyText) {
-      tbody.innerHTML = "";
-      if (!items.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="${columns.length}" class="muted">${emptyText}</td>`;
-        tbody.appendChild(tr);
-        return;
-      }
-      for (const item of items) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = columns.map((column) => `<td>${column(item)}</td>`).join("");
-        tbody.appendChild(tr);
-      }
-    }
-
-    function renderProjectCards() {
-      ui.projectCards.innerHTML = "";
-      if (!state.projects.length) {
-        ui.projectCards.innerHTML = '<div class="muted">No projects found.</div>';
-        return;
-      }
-      for (const project of state.projects) {
-        const tile = document.createElement("div");
-        tile.className = `project-tile ${project.projectId === state.settings.currentProjectId ? "active" : ""}`;
-        tile.innerHTML = `
-          <h3>${project.name}</h3>
-          <div class="mono">${project.projectId}</div>
-          <div class="muted">Collections: ${project.collectionsCount ?? 0} | Environments: ${project.environmentsCount ?? 0}</div>
-          <div class="muted">Presets: ${project.presetsCount ?? 0} | Default: ${project.defaultPresetId || "-"}</div>
-        `;
-        tile.addEventListener("click", () => syncProjectContext(project.projectId));
-        ui.projectCards.appendChild(tile);
-      }
-    }
-
-    function renderProjectSelectors() {
-      const allOptions = projectOptions(true);
-      const activeOnly = projectOptions(false);
-
-      ui.globalProjectSelect.innerHTML = activeOnly;
-      ui.triggerProjectSelect.innerHTML = activeOnly;
-      ui.historyProjectFilter.innerHTML = allOptions;
-
-      const currentProjectId = state.settings.currentProjectId;
-      const exists = state.projects.some((p) => p.projectId === currentProjectId);
-      if (!exists && state.projects.length > 0) {
-        state.settings.currentProjectId = state.projects[0].projectId;
-      }
-
-      if (state.settings.currentProjectId) {
-        ui.globalProjectSelect.value = state.settings.currentProjectId;
-        ui.triggerProjectSelect.value = state.settings.currentProjectId;
-      }
-
-      ui.historyProjectFilter.value = "";
-      renderProjectCards();
-    }
-
-    function renderReleaseSnippets() {
-      const base = (state.settings.baseUrl || "http://localhost:8080").replace(/\/$/, "");
-      const projectId = ui.triggerProjectSelect.value || state.settings.currentProjectId || "default";
-      const body = {
-        projectId,
-        ...(ui.presetSelect.value ? { presetId: ui.presetSelect.value } : {}),
-        mode: ui.mode.value,
-        waitForCompletion: ui.waitForCompletion.checked,
-        waitTimeoutSec: Number(ui.waitTimeout.value || 180)
-      };
-      const triggerUrl = `${base}/projects/${encodeURIComponent(projectId)}/release/trigger`;
-      const token = state.settings.token || "<your-token>";
-      const jsonBody = JSON.stringify(body, null, 2);
-      const escaped = jsonBody.split("'").join(String.raw`'\''`);
-
-      ui.curlSnippet.textContent = String.raw`curl -X POST "${triggerUrl}" \
-  -H "Content-Type: application/json" \
-  -H "x-trigger-token: ${token}" \
-  -d '${escaped}'`;
-
-      ui.pythonSnippet.textContent = `import requests
-
-url = "${triggerUrl}"
-headers = {
-    "Content-Type": "application/json",
-    "x-trigger-token": "${token}"
-}
-payload = ${jsonBody}
-
-response = requests.post(url, headers=headers, json=payload, timeout=180)
-print(response.status_code)
-print(response.text)`;
-
-      ui.snippetMsg.textContent = `Snippet ready for project ${projectId}${body.presetId ? ` and preset ${body.presetId}` : ""}.`;
-    }
-
-    function renderResourceViews() {
-      ui.presetCollectionSelect.innerHTML = optionMarkup(
-        state.collections.map((item) => ({ value: item.assetId, label: `${item.name} (${item.assetId})` })),
-        "No collections uploaded"
-      );
-      ui.presetEnvironmentSelect.innerHTML = optionMarkup(
-        state.environments.map((item) => ({ value: item.assetId, label: `${item.name} (${item.assetId})` })),
-        "No environments uploaded"
-      );
-
-      const defaultPresetId = state.projects.find((item) => item.projectId === activeProjectId())?.defaultPresetId || "";
-      const presetOptions = [{ value: "", label: defaultPresetId ? `Use default preset (${defaultPresetId})` : "Use backend default selection" }]
-        .concat(state.presets.map((item) => ({ value: item.presetId, label: `${item.name} (${item.presetId})` })));
-      ui.presetSelect.innerHTML = optionMarkup(presetOptions, "No presets available");
-
-      renderSimpleTable(
-        ui.collectionListBody,
-        state.collections,
-        [
-          (item) => `<span class="mono">${item.assetId}</span>`,
-          (item) => item.name,
-          (item) => item.fileName
-        ],
-        "No collections uploaded"
-      );
-
-      renderSimpleTable(
-        ui.environmentListBody,
-        state.environments,
-        [
-          (item) => `<span class="mono">${item.assetId}</span>`,
-          (item) => item.name,
-          (item) => item.fileName
-        ],
-        "No environments uploaded"
-      );
-
-      renderSimpleTable(
-        ui.presetListBody,
-        state.presets,
-        [
-          (item) => `<span class="mono">${item.presetId}</span><div class="muted">${item.name}</div>`,
-          (item) => `<span class="mono">${item.collectionAssetId}</span>`,
-          (item) => `<span class="mono">${item.environmentAssetId}</span>`,
-          (item) => item.isDefault ? "Yes" : "No"
-        ],
-        "No presets created"
-      );
-
-      ui.assetSummary.textContent = `Project ${activeProjectId()} | Collections: ${state.collections.length} | Environments: ${state.environments.length} | Presets: ${state.presets.length}`;
-
-      const selectedPreset = state.presets.find((item) => item.presetId === ui.presetSelect.value);
-      if (selectedPreset) {
-        ui.presetMeta.textContent = `Preset ${selectedPreset.name} uses collection ${selectedPreset.collectionAssetId} and environment ${selectedPreset.environmentAssetId}.`;
-      } else if (defaultPresetId) {
-        ui.presetMeta.textContent = `Default preset ${defaultPresetId} will be used if no preset is selected.`;
-      } else {
-        ui.presetMeta.textContent = "Default preset or legacy project files will be used.";
-      }
-
-      renderReleaseSnippets();
-    }
-
-    async function loadProjectResources(projectId) {
-      if (!projectId) {
-        return;
-      }
-      try {
-        const [collectionsData, environmentsData, presetsData] = await Promise.all([
-          request(`/projects/${encodeURIComponent(projectId)}/collections`),
-          request(`/projects/${encodeURIComponent(projectId)}/environments`),
-          request(`/projects/${encodeURIComponent(projectId)}/presets`)
-        ]);
-        state.collections = collectionsData.items || [];
-        state.environments = environmentsData.items || [];
-        state.presets = presetsData.items || [];
-        renderResourceViews();
-      } catch (error) {
-        ui.assetSummary.textContent = `Asset load error: ${error.message}`;
-      }
-    }
-
-    async function syncProjectContext(projectId) {
-      state.settings.currentProjectId = projectId || "default";
-      saveSettings();
-      renderProjectSelectors();
-      await loadProjectResources(state.settings.currentProjectId);
-      await loadRunningList();
-    }
-
-    async function loadProjects() {
-      try {
-        const data = await request("/projects");
-        state.projects = data.items || [];
-        renderProjectSelectors();
-        await loadProjectResources(activeProjectId());
-      } catch (error) {
-        ui.projectMsg.textContent = `Projects error: ${error.message}`;
-      }
-    }
-
-    async function loadHealth() {
-      try {
-        const data = await request("/health");
-        ui.globalSummary.textContent = `Health: ${data.status} | activeRunId: ${data.activeRunId || "-"}`;
-      } catch (error) {
-        ui.globalSummary.textContent = `Health error: ${error.message}`;
-      }
-    }
-
-    function historyQuery() {
-      const params = new URLSearchParams();
-      params.set("limit", ui.limit.value || String(state.settings.defaultPageSize));
-      params.set("offset", String(state.offset));
-      if (ui.historyProjectFilter.value) params.set("projectId", ui.historyProjectFilter.value);
-      if (ui.statusFilter.value) params.set("status", ui.statusFilter.value);
-      if (ui.modeFilter.value) params.set("mode", ui.modeFilter.value);
-      if (ui.sortFilter.value) params.set("sort", ui.sortFilter.value);
-      return params.toString();
-    }
-
-    function renderRunTable(tbody, items, onSelect) {
-      tbody.innerHTML = "";
-      if (!items.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = '<td colspan="5" class="muted">No runs found</td>';
-        tbody.appendChild(tr);
-        return;
-      }
-
-      for (const item of items) {
-        const assertions = item.summary?.assertions;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="mono"><button class="run-id-link" data-run-id="${item.runId}">${item.runId}</button></td>
-          <td><span class="status ${item.status || ""}">${item.status || "unknown"}</span></td>
-          <td>${item.mode || "-"}</td>
-          <td>${assertions ? `${assertions.executed}/${assertions.failed}` : "-"}</td>
-          <td class="muted">${item.startedAt || "-"}</td>
-        `;
-        tr.addEventListener("click", () => onSelect(item.runId));
-        tr.querySelector("button[data-run-id]").addEventListener("click", (event) => {
-          event.stopPropagation();
-          onSelect(item.runId);
-        });
-        tbody.appendChild(tr);
-      }
-    }
-
-    async function loadHistory() {
-      try {
-        const data = await request(`/runs?${historyQuery()}`);
-        state.historyItems = data.items || [];
-        state.total = data.total || 0;
-        ui.historyMeta.textContent = `Total: ${state.total} | Showing: ${data.count} | Offset: ${data.offset}`;
-        renderRunTable(ui.historyBody, state.historyItems, loadRunDetail);
-      } catch (error) {
-        ui.historyMeta.textContent = `History error: ${error.message}`;
-        renderRunTable(ui.historyBody, [], loadRunDetail);
-      }
-    }
-
-    async function loadRunningList() {
-      try {
-        const params = new URLSearchParams({
-          status: "running",
-          sort: "desc",
-          limit: String(state.settings.defaultPageSize),
-          offset: "0",
-          projectId: state.settings.currentProjectId || "default"
-        });
-        const data = await request(`/runs?${params.toString()}`);
-        ui.runningMeta.textContent = `Running runs: ${data.count}`;
-        renderRunTable(ui.runningBody, data.items || [], loadRunDetail);
-      } catch (error) {
-        ui.runningMeta.textContent = `Running list error: ${error.message}`;
-        renderRunTable(ui.runningBody, [], loadRunDetail);
-      }
-    }
-
-    function renderRunDetail(data) {
-      ui.homeEmpty.style.display = "none";
+  async function openRunDetail(runId) {
+    try {
+      const d = await request("/runs/" + encodeURIComponent(runId));
+      ui.homeEmpty.style.display  = "none";
       ui.homeDetail.style.display = "block";
-      ui.detailId.textContent = data.runId;
-      setStatusChip(ui.detailStatus, data.status);
-
-      const req = data.summary?.requests;
-      const asr = data.summary?.assertions;
-      ui.kpiReq.textContent = req ? String(req.executed) : "-";
+      ui.detailId.textContent = d.runId;
+      setChip(ui.detailStatus, d.status);
+      const req = d.summary && d.summary.requests;
+      const asr = d.summary && d.summary.assertions;
+      ui.kpiReq.textContent    = req ? String(req.executed) : "-";
       ui.kpiAssert.textContent = asr ? String(asr.executed) : "-";
-      ui.kpiFail.textContent = asr ? String(asr.failed) : "-";
-      ui.kpiDur.textContent = data.summary?.totalRunDuration || "-";
-      ui.detailResp.textContent = `Avg response: ${data.summary?.averageResponseTime || "-"}`;
-
+      ui.kpiFail.textContent   = asr ? String(asr.failed)   : "-";
+      ui.kpiDur.textContent    = (d.summary && d.summary.totalRunDuration) || "-";
+      ui.detailResp.textContent = "Avg response: " + ((d.summary && d.summary.averageResponseTime) || "-");
+      const urls = d.artifactUrls || {};
       const links = [];
-      if (data.artifactUrls?.zip) links.push(["Download ZIP", data.artifactUrls.zip, `${data.runId}-artifacts.zip`]);
-      if (data.artifactUrls?.junit) links.push(["Download JUnit", data.artifactUrls.junit, `${data.runId}.xml`]);
-      if (data.artifactUrls?.json) links.push(["Download JSON", data.artifactUrls.json, `${data.runId}.json`]);
-      if (data.artifactUrls?.html) links.push(["Download HTML", data.artifactUrls.html, `${data.runId}.html`]);
-      if (data.artifactUrls?.log) links.push(["Download Log", data.artifactUrls.log, `${data.runId}.log`]);
-
-      ui.artifactLinks.innerHTML = links.map(([name, path, fileName]) => `<button class="btn" data-path="${path}" data-name="${fileName}">${name}</button>`).join("");
-      for (const btn of ui.artifactLinks.querySelectorAll("button[data-path]")) {
-        btn.addEventListener("click", () => downloadArtifact(btn.dataset.path, btn.dataset.name));
-      }
-
-      const failures = data.failureSummary || [];
-      ui.failureBox.innerHTML = failures.length
-        ? failures.map((f) => `<div class="failure">${f}</div>`).join("")
-        : '<div class="muted">No failures in this run.</div>';
+      if (urls.zip)   links.push(["ZIP",   urls.zip,   runId + ".zip"]);
+      if (urls.junit) links.push(["JUnit", urls.junit, runId + ".xml"]);
+      if (urls.json)  links.push(["JSON",  urls.json,  runId + ".json"]);
+      if (urls.html)  links.push(["HTML",  urls.html,  runId + ".html"]);
+      if (urls.log)   links.push(["Log",   urls.log,   runId + ".log"]);
+      ui.artifactLinks.innerHTML = links.map(function(l) { return "<button class=\"btn sm\" data-p=\"" + l[1] + "\" data-n=\"" + l[2] + "\">⬇ " + l[0] + "</button>"; }).join("");
+      for (const b of ui.artifactLinks.querySelectorAll("[data-p]"))
+        b.addEventListener("click", function() { downloadArtifact(this.dataset.p, this.dataset.n); });
+      const fails = d.failureSummary || [];
+      ui.failureBox.innerHTML = fails.length
+        ? fails.map(function(f) { return "<div class=\"failure-item\">" + f + "</div>"; }).join("")
+        : "<p class=\"muted\">No failures recorded.</p>";
+      setPage("homePage");
+    } catch (e) {
+      ui.triggerMsg.textContent = "Detail error: " + e.message;
     }
+  }
 
-    async function loadRunDetail(runId) {
-      state.selectedRunId = runId;
-      try {
-        const data = await request(`/runs/${encodeURIComponent(runId)}`);
-        renderRunDetail(data);
-      } catch (error) {
-        ui.triggerMsg.textContent = `Detail error: ${error.message}`;
-      }
+  function activeProjectId() {
+    return ui.globalProjectSelect.value || state.settings.currentProjectId || "default";
+  }
+
+  function renderProjectSelectors() {
+    const opts = state.projects.map(function(p) { return "<option value=\"" + p.projectId + "\">" + p.name + " (" + p.projectId + ")</option>"; }).join("");
+    const all  = "<option value=\"\">All projects</option>" + opts;
+    ui.globalProjectSelect.innerHTML  = opts;
+    ui.triggerProjectSelect.innerHTML = opts;
+    ui.historyProjectFilter.innerHTML = all;
+    var hasCurrent = state.projects.some(function(p) { return p.projectId === state.settings.currentProjectId; });
+    if (!hasCurrent) {
+      state.settings.currentProjectId = state.projects.length ? state.projects[0].projectId : "default";
+      persistSettings();
     }
-
-    async function triggerRun() {
-      const body = {
-        projectId: ui.triggerProjectSelect.value || state.settings.currentProjectId || "default",
-        ...(ui.presetSelect.value ? { presetId: ui.presetSelect.value } : {}),
-        mode: ui.mode.value,
-        waitForCompletion: ui.waitForCompletion.checked,
-        waitTimeoutSec: Number(ui.waitTimeout.value || 180)
-      };
-
-      ui.triggerMsg.textContent = "Triggering run...";
-      try {
-        const data = await request("/run-tests", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-        ui.triggerMsg.textContent = `Run ${data.runId} status: ${data.status}`;
-        await loadRunningList();
-        await loadHistory();
-        await loadHealth();
-      } catch (error) {
-        ui.triggerMsg.textContent = `Trigger error: ${error.message}`;
-      }
+    if (state.settings.currentProjectId) {
+      ui.globalProjectSelect.value  = state.settings.currentProjectId;
+      ui.triggerProjectSelect.value = state.settings.currentProjectId;
+      ui.historyProjectFilter.value = state.settings.currentProjectId;
     }
+    renderProjectCards();
+  }
 
-    async function createProjectAction() {
-      const body = {
-        projectId: ui.newProjectId.value.trim(),
-        name: ui.newProjectName.value.trim(),
-        collectionFile: ui.newCollectionFile.value.trim(),
-        environmentFile: ui.newEnvironmentFile.value.trim()
-      };
-      if (!body.projectId) {
-        ui.projectMsg.textContent = "Project ID is required.";
+  function renderProjectCards() {
+    if (!state.projects.length) {
+      ui.projectCards.innerHTML = "<div class=\"muted\" style=\"padding:14px 0;\">No projects yet. Create one above, then come back to select it.</div>";
+      return;
+    }
+    ui.projectCards.innerHTML = "";
+    for (const p of state.projects) {
+      const active = p.projectId === state.settings.currentProjectId;
+      const tile = document.createElement("div");
+      tile.className = "project-tile" + (active ? " active" : "");
+      tile.innerHTML = "<div class=\"p-name\">" + p.name + "</div>" +
+        "<div class=\"p-id\">" + p.projectId + "</div>" +
+        "<div class=\"p-stats\">" +
+          "<span class=\"p-stat\">📄 " + (p.collectionsCount || 0) + " collections</span>" +
+          "<span class=\"p-stat\">🌍 " + (p.environmentsCount || 0) + " envs</span>" +
+          "<span class=\"p-stat\">🎯 " + (p.presetsCount || 0) + " presets</span>" +
+          (p.defaultPresetId ? "<span class=\"p-stat text-success\">✓ default: " + p.defaultPresetId + "</span>" : "") +
+        "</div>";
+      tile.addEventListener("click", function() { setProjectView(p.projectId); });
+      ui.projectCards.appendChild(tile);
+    }
+  }
+
+  async function loadProjects() {
+    try {
+      const d = await request("/projects");
+      state.projects = d.items || [];
+      renderProjectSelectors();
+      await loadProjectResources(activeProjectId());
+      if (state.projects.length >= 1) markStep(2);
+    } catch (e) {
+      state.projects = [];
+      state.collections = [];
+      state.environments = [];
+      state.presets = [];
+      renderProjectSelectors();
+      renderResourceViews(state.settings.currentProjectId || "default");
+      ui.projectMsg.textContent = "Error: " + e.message;
+      ui.assetSummary.textContent = "Cannot load project data from " + state.settings.baseUrl + ". Check Settings -> Base URL and token.";
+    }
+  }
+
+  async function loadProjectResources(projectId) {
+    if (!projectId) return;
+    const requestId = ++state.projectResourceRequestId;
+    try {
+      const cd = await request("/projects/" + encodeURIComponent(projectId) + "/collections");
+      const ed = await request("/projects/" + encodeURIComponent(projectId) + "/environments");
+      const pd = await request("/projects/" + encodeURIComponent(projectId) + "/presets");
+
+      if (requestId !== state.projectResourceRequestId || projectId !== state.settings.currentProjectId) {
         return;
       }
 
-      try {
-        const data = await request("/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-
-        ui.projectMsg.textContent = `Created project ${data.project.projectId}.`;
-        ui.newProjectId.value = "";
-        ui.newProjectName.value = "";
-        ui.newCollectionFile.value = "";
-        ui.newEnvironmentFile.value = "";
-
-        await loadProjects();
-        await syncProjectContext(data.project.projectId);
-      } catch (error) {
-        ui.projectMsg.textContent = `Create project error: ${error.message}`;
-      }
-    }
-
-    async function readSelectedFile(input) {
-      const file = input.files && input.files[0];
-      if (!file) {
-        throw new Error("Choose a JSON file first");
-      }
-      return { fileName: file.name, content: await file.text() };
-    }
-
-    async function uploadAsset(assetType) {
-      const projectId = activeProjectId();
-      const isCollection = assetType === "collection";
-      const idInput = isCollection ? ui.collectionAssetId : ui.environmentAssetId;
-      const nameInput = isCollection ? ui.collectionAssetName : ui.environmentAssetName;
-      const fileInput = isCollection ? ui.collectionFileInput : ui.environmentFileInput;
-      const messageNode = isCollection ? ui.collectionMsg : ui.environmentMsg;
-
-      try {
-        const file = await readSelectedFile(fileInput);
-        const body = {
-          assetId: idInput.value.trim() || slugify(file.fileName.replace(/\.json$/i, "")),
-          name: nameInput.value.trim() || file.fileName.replace(/\.json$/i, ""),
-          fileName: file.fileName,
-          content: file.content
-        };
-
-        await request(`/projects/${encodeURIComponent(projectId)}/${isCollection ? "collections" : "environments"}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-
-        messageNode.textContent = `${isCollection ? "Collection" : "Environment"} ${body.assetId} uploaded.`;
-        idInput.value = "";
-        nameInput.value = "";
-        fileInput.value = "";
-        await loadProjectResources(projectId);
-      } catch (error) {
-        messageNode.textContent = `Upload error: ${error.message}`;
-      }
-    }
-
-    async function createPresetAction() {
-      const projectId = activeProjectId();
-      const body = {
-        presetId: ui.presetIdInput.value.trim(),
-        name: ui.presetNameInput.value.trim(),
-        collectionAssetId: ui.presetCollectionSelect.value,
-        environmentAssetId: ui.presetEnvironmentSelect.value,
-        isDefault: ui.presetDefaultCheckbox.checked
-      };
-
-      if (!body.presetId || !body.collectionAssetId || !body.environmentAssetId) {
-        ui.presetMsg.textContent = "Preset ID, collection, and environment are required.";
+      state.collections  = (cd && cd.items) || [];
+      state.environments = (ed && ed.items) || [];
+      state.presets      = (pd && pd.items) || [];
+      state.loadedProjectId = projectId;
+      renderResourceViews(projectId);
+    } catch (e) {
+      if (requestId !== state.projectResourceRequestId || projectId !== state.settings.currentProjectId) {
         return;
       }
+      ui.assetSummary.textContent = "Asset load error: " + e.message;
+    }
+  }
 
-      try {
-        await request(`/projects/${encodeURIComponent(projectId)}/presets`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
+  function syncAssetEditUi() {
+    var collectionEdit = state.assetEdit.collection;
+    var environmentEdit = state.assetEdit.environment;
 
-        ui.presetMsg.textContent = `Preset ${body.presetId} saved.`;
-        ui.presetIdInput.value = "";
-        ui.presetNameInput.value = "";
-        ui.presetDefaultCheckbox.checked = false;
-        await loadProjects();
-        await loadProjectResources(projectId);
-      } catch (error) {
-        ui.presetMsg.textContent = `Preset error: ${error.message}`;
-      }
+    ui.clearCollectionEditBtn.style.display = collectionEdit ? "" : "none";
+    ui.clearEnvironmentEditBtn.style.display = environmentEdit ? "" : "none";
+    ui.collectionEditHint.textContent = collectionEdit
+      ? "Replacing " + collectionEdit.name + " (" + collectionEdit.assetId + "). Upload the new JSON to keep presets linked to the same collection."
+      : "To change a collection later, click Replace on its row.";
+    ui.environmentEditHint.textContent = environmentEdit
+      ? "Replacing " + environmentEdit.name + " (" + environmentEdit.assetId + "). Upload the new JSON to keep presets linked to the same environment."
+      : "To change an environment later, click Replace on its row.";
+    ui.uploadCollectionBtn.textContent = collectionEdit ? "↻ Replace Collection" : "⬆ Upload Collection";
+    ui.uploadEnvironmentBtn.textContent = environmentEdit ? "↻ Replace Environment" : "⬆ Upload Environment";
+  }
+
+  function startAssetReplace(type, asset) {
+    state.assetEdit[type] = asset;
+    var nameInput = type === "collection" ? ui.collectionAssetName : ui.environmentAssetName;
+    var fileInput = type === "collection" ? ui.collectionFileInput : ui.environmentFileInput;
+    nameInput.value = asset.name || nameInput.value;
+    fileInput.value = "";
+    syncAssetEditUi();
+    setPage(type === "collection" ? "collectionsPage" : "environmentsPage");
+  }
+
+  function clearAssetReplace(type) {
+    state.assetEdit[type] = null;
+    syncAssetEditUi();
+  }
+
+  function renderResourceViews(projectId) {
+    var proj = state.projects.find(function(p) { return p.projectId === projectId; });
+    var pName = (proj && proj.name) || projectId;
+    ui.collActiveProject.textContent   = pName;
+    ui.envActiveProject.textContent    = pName;
+    ui.presetActiveProject.textContent = pName;
+    ui.assetSummary.textContent = pName + "  " + state.collections.length + " coll  " + state.environments.length + " env  " + state.presets.length + " presets";
+
+    if (!state.collections.length) {
+      ui.collectionListBody.innerHTML = emptyRow(5, "No collections uploaded yet. Upload one above to continue to Step 4.");
+    } else {
+      ui.collectionListBody.innerHTML = state.collections.map(function(c) {
+        return "<tr><td class=\"mono td-wrap\">" + c.assetId + "</td><td>" + c.name + "</td><td class=\"mono\">" + c.fileName + "</td><td class=\"muted\">" + fmtDate(c.createdAt) + "</td><td><button class=\"btn sm\" data-action=\"replace\" data-type=\"collection\" data-asset-id=\"" + c.assetId + "\">Replace</button></td></tr>";
+      }).join("");
+      markStep(3);
     }
 
-    function handleFileAutofill(input, idInput, nameInput) {
-      const file = input.files && input.files[0];
-      if (!file) {
-        return;
-      }
-      const baseName = file.name.replace(/\.json$/i, "");
-      if (!idInput.value.trim()) idInput.value = slugify(baseName);
-      if (!nameInput.value.trim()) nameInput.value = baseName;
+    if (!state.environments.length) {
+      ui.environmentListBody.innerHTML = emptyRow(5, "No environments uploaded yet. Upload one above to continue to Step 5.");
+    } else {
+      ui.environmentListBody.innerHTML = state.environments.map(function(e) {
+        return "<tr><td class=\"mono td-wrap\">" + e.assetId + "</td><td>" + e.name + "</td><td class=\"mono\">" + e.fileName + "</td><td class=\"muted\">" + fmtDate(e.createdAt) + "</td><td><button class=\"btn sm\" data-action=\"replace\" data-type=\"environment\" data-asset-id=\"" + e.assetId + "\">Replace</button></td></tr>";
+      }).join("");
+      markStep(4);
     }
 
-    function historyPrev() {
-      const pageSize = Number(ui.limit.value || state.settings.defaultPageSize);
-      state.offset = Math.max(0, state.offset - pageSize);
-      loadHistory();
+    var noCol = "<option value=\"\">- no collections -</option>";
+    var noEnv = "<option value=\"\">- no environments -</option>";
+    ui.presetCollectionSelect.innerHTML  = state.collections.length  ? state.collections.map(function(c) { return "<option value=\"" + c.assetId + "\">" + c.name + " (" + c.assetId + ")</option>"; }).join("") : noCol;
+    syncAssetEditUi();
+    ui.presetEnvironmentSelect.innerHTML = state.environments.length ? state.environments.map(function(e) { return "<option value=\"" + e.assetId + "\">" + e.name + " (" + e.assetId + ")</option>"; }).join("") : noEnv;
+
+    var defPresetId = (proj && proj.defaultPresetId) || "";
+    if (!state.presets.length) {
+      ui.presetListBody.innerHTML = emptyRow(6, "No presets yet. Create one above after uploading a collection and environment.");
+    } else {
+      ui.presetListBody.innerHTML = state.presets.map(function(p) {
+        return "<tr><td class=\"mono td-wrap\">" + p.presetId + "</td><td><strong>" + p.name + "</strong></td>" +
+          "<td class=\"mono\">" + p.collectionAssetId + "</td><td class=\"mono\">" + p.environmentAssetId + "</td>" +
+          "<td>" + (p.isDefault ? "<span class=\"chip passed\">default</span>" : "<span class=\"muted\">-</span>") + "</td>" +
+          "<td class=\"muted\">" + fmtDate(p.createdAt) + "</td></tr>";
+      }).join("");
+      markStep(5);
     }
 
-    function historyNext() {
-      const pageSize = Number(ui.limit.value || state.settings.defaultPageSize);
-      if (state.offset + pageSize >= state.total) {
-        return;
-      }
-      state.offset += pageSize;
-      loadHistory();
+    var baseOpt = "<option value=\"\">" + (defPresetId ? "Default (" + defPresetId + ")" : "Backend default") + "</option>";
+    ui.presetSelect.innerHTML = baseOpt + state.presets.map(function(p) { return "<option value=\"" + p.presetId + "\">" + p.name + " (" + p.presetId + ")</option>"; }).join("");
+
+    updatePresetMeta();
+    renderSnippets();
+  }
+
+  function updatePresetMeta() {
+    var sel = state.presets.find(function(p) { return p.presetId === ui.presetSelect.value; });
+    if (sel) {
+      ui.presetMeta.textContent = "Preset \"" + sel.name + "\"  Collection: " + sel.collectionAssetId + "  Env: " + sel.environmentAssetId;
+    } else {
+      var def = state.presets.find(function(p) { return p.isDefault; });
+      ui.presetMeta.textContent = def ? "Using default preset \"" + def.name + "\" (" + def.presetId + ")" : "No preset selected - backend default or project files will be used";
     }
+  }
 
-    function toggleTheme() {
-      const next = (document.documentElement.dataset.theme || "light") === "light" ? "dark" : "light";
-      document.documentElement.dataset.theme = next;
-      state.settings.theme = next;
-      saveSettings();
+  async function syncProjectContext(projectId) {
+    const nextProjectId = projectId || "default";
+    state.settings.currentProjectId = nextProjectId;
+    state.assetEdit.collection = null;
+    state.assetEdit.environment = null;
+    persistSettings();
+    ui.globalProjectSelect.value = nextProjectId;
+    ui.triggerProjectSelect.value = nextProjectId;
+    if (ui.historyProjectFilter.querySelector(`option[value=\"${nextProjectId}\"]`)) {
+      ui.historyProjectFilter.value = nextProjectId;
     }
+    renderProjectCards();
+    ui.assetSummary.textContent = "Loading project resources for " + nextProjectId + "...";
+    ui.collActiveProject.textContent = "Loading...";
+    ui.envActiveProject.textContent = "Loading...";
+    ui.presetActiveProject.textContent = "Loading...";
+    state.loadedProjectId = "";
+    state.collections = [];
+    state.environments = [];
+    state.presets = [];
+    renderResourceViews(nextProjectId);
+    await loadProjectResources(nextProjectId);
+    await loadRunningList();
+  }
 
-    async function copyText(value, label) {
-      try {
-        await navigator.clipboard.writeText(value);
-        ui.snippetMsg.textContent = `${label} copied.`;
-      } catch {
-        ui.snippetMsg.textContent = `Copy failed for ${label}.`;
-      }
+  async function setProjectView(projectId) {
+    const nextProjectId = projectId || state.settings.currentProjectId || "default";
+    if (!state.projects.some(function(p) { return p.projectId === nextProjectId; })) {
+      await loadProjects();
     }
-
-    function saveSettingsAction() {
-      readSettingsFromForm();
-      saveSettings();
-      ui.settingsMsg.textContent = "Settings saved globally.";
-      renderReleaseSnippets();
-      loadProjects();
-      loadHealth();
-      loadRunningList();
-      state.offset = 0;
-      loadHistory();
+    ui.globalProjectSelect.value = nextProjectId;
+    ui.triggerProjectSelect.value = nextProjectId;
+    if (ui.historyProjectFilter.querySelector(`option[value=\"${nextProjectId}\"]`)) {
+      ui.historyProjectFilter.value = nextProjectId;
     }
+    await syncProjectContext(nextProjectId);
+    await loadHistory(true);
+  }
 
-    function resetSettingsAction() {
-      state.settings = {
-        baseUrl: "http://localhost:8080",
-        token: "",
-        pollInterval: 2500,
-        defaultPageSize: 25,
-        currentProjectId: "default",
-        theme: "light"
-      };
-      applySettingsToUi();
-      saveSettings();
-      ui.settingsMsg.textContent = "Settings reset to defaults.";
-      renderReleaseSnippets();
-      loadProjects();
-      loadHealth();
-      loadRunningList();
-      state.offset = 0;
-      loadHistory();
-    }
+  function renderSnippets() {
+    var base  = (state.settings.baseUrl || "http://localhost:8080").replace(/\/$/, "");
+    var pid   = ui.triggerProjectSelect.value || state.settings.currentProjectId || "default";
+    var body  = { projectId: pid, mode: ui.mode.value, waitForCompletion: ui.waitForCompletion.checked, waitTimeoutSec: Number(ui.waitTimeout.value || 180) };
+    if (ui.presetSelect.value) body.presetId = ui.presetSelect.value;
+    var url   = base + "/projects/" + encodeURIComponent(pid) + "/release/trigger";
+    var token = state.settings.token || "<your-token>";
+    var jbody = JSON.stringify(body, null, 2);
+    var esc   = jbody.split("'").join("'\\''");
+    var host;
+    try { host = new URL(url).host; } catch { host = "<host>"; }
 
-    for (const btn of ui.menuButtons) {
-      btn.addEventListener("click", () => setActivePage(btn.dataset.page));
-    }
+    ui.curlSnippet.textContent = "curl -X POST \"" + url + "\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"x-trigger-token: " + token + "\" \\\n  -d '" + esc + "'";
+    ui.pythonSnippet.textContent = "import requests\n\nurl = \"" + url + "\"\nheaders = {\n    \"Content-Type\": \"application/json\",\n    \"x-trigger-token\": \"" + token + "\"\n}\npayload = " + jbody + "\n\nresponse = requests.post(url, headers=headers, json=payload, timeout=180)\nprint(response.status_code)\nprint(response.text)";
+    ui.postRequestSnippet.textContent = "POST " + url + " HTTP/1.1\nHost: " + host + "\nContent-Type: application/json\nx-trigger-token: " + token + "\n\n" + jbody;
 
-    ui.themeToggle.addEventListener("click", toggleTheme);
-    ui.globalReloadBtn.addEventListener("click", () => syncProjectContext(activeProjectId()));
-    ui.globalProjectSelect.addEventListener("change", () => syncProjectContext(ui.globalProjectSelect.value || "default"));
-    ui.triggerProjectSelect.addEventListener("change", () => {
-      syncProjectContext(ui.triggerProjectSelect.value || "default");
-      renderReleaseSnippets();
-    });
+    var sfx = body.presetId ? "  preset " + body.presetId : "";
+    ui.snippetMsg.textContent = "Ready for project " + pid + sfx;
+  }
 
-    ui.historyRefresh.addEventListener("click", () => { state.offset = 0; loadHistory(); });
-    ui.prevBtn.addEventListener("click", historyPrev);
-    ui.nextBtn.addEventListener("click", historyNext);
+  async function createProjectAction() {
+    var body = { name: ui.newProjectName.value.trim(), collectionFile: ui.newCollectionFile.value.trim(), environmentFile: ui.newEnvironmentFile.value.trim() };
+    if (!body.name) { showMsg(ui.projectMsg, "Project name is required.", "err"); return; }
+    try {
+      var d = await request("/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      showMsg(ui.projectMsg, "Project created: " + d.project.projectId, "ok");
+      ui.newProjectName.value = ui.newCollectionFile.value = ui.newEnvironmentFile.value = "";
+      await loadProjects();
+      await syncProjectContext(d.project.projectId);
+      markStep(2);
+    } catch (e) { showMsg(ui.projectMsg, "Error: " + e.message, "err"); }
+  }
 
-    ui.createProjectBtn.addEventListener("click", createProjectAction);
-    ui.refreshProjectsBtn.addEventListener("click", loadProjects);
+  async function uploadAsset(type) {
+    var isCol    = type === "collection";
+    var nameInp  = isCol ? ui.collectionAssetName : ui.environmentAssetName;
+    var fileInp  = isCol ? ui.collectionFileInput : ui.environmentFileInput;
+    var msgNode  = isCol ? ui.collectionMsg       : ui.environmentMsg;
+    var pid      = activeProjectId();
+    var edit     = state.assetEdit[type];
+    var file     = fileInp.files && fileInp.files[0];
+    if (!file) { showMsg(msgNode, "Choose a JSON file first.", "err"); return; }
+    try {
+      var content = await file.text();
+      var body = { name: nameInp.value.trim() || file.name.replace(/\.json$/i, ""), fileName: file.name, content: content };
+      if (edit && edit.assetId) body.assetId = edit.assetId;
+      await request("/projects/" + encodeURIComponent(pid) + "/" + (isCol ? "collections" : "environments"),
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      showMsg(msgNode, (isCol ? "Collection" : "Environment") + (edit ? " replaced successfully." : " uploaded successfully."), "ok");
+      nameInp.value = ""; fileInp.value = "";
+      state.assetEdit[type] = null;
+      syncAssetEditUi();
+      await loadProjectResources(pid);
+    } catch (e) { showMsg(msgNode, "Error: " + e.message, "err"); }
+  }
 
-    ui.uploadCollectionBtn.addEventListener("click", () => uploadAsset("collection"));
-    ui.uploadEnvironmentBtn.addEventListener("click", () => uploadAsset("environment"));
-    ui.collectionFileInput.addEventListener("change", () => handleFileAutofill(ui.collectionFileInput, ui.collectionAssetId, ui.collectionAssetName));
-    ui.environmentFileInput.addEventListener("change", () => handleFileAutofill(ui.environmentFileInput, ui.environmentAssetId, ui.environmentAssetName));
+  async function createPresetAction() {
+    var pid  = activeProjectId();
+    var body = { name: ui.presetNameInput.value.trim(), collectionAssetId: ui.presetCollectionSelect.value, environmentAssetId: ui.presetEnvironmentSelect.value, isDefault: ui.presetDefaultCheckbox.checked };
+    if (!body.name || !body.collectionAssetId || !body.environmentAssetId) { showMsg(ui.presetMsg, "Name, collection, and environment are all required.", "err"); return; }
+    try {
+      await request("/projects/" + encodeURIComponent(pid) + "/presets",
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      showMsg(ui.presetMsg, "Preset saved with auto-generated ID.", "ok");
+      ui.presetNameInput.value = ""; ui.presetDefaultCheckbox.checked = false;
+      await loadProjects();
+      await loadProjectResources(pid);
+      markStep(5);
+    } catch (e) { showMsg(ui.presetMsg, "Error: " + e.message, "err"); }
+  }
 
-    ui.createPresetBtn.addEventListener("click", createPresetAction);
+  async function triggerRun() {
+    var body = { projectId: ui.triggerProjectSelect.value || state.settings.currentProjectId || "default", mode: ui.mode.value, waitForCompletion: ui.waitForCompletion.checked, waitTimeoutSec: Number(ui.waitTimeout.value || 180) };
+    if (ui.presetSelect.value) body.presetId = ui.presetSelect.value;
+    showMsg(ui.triggerMsg, "Triggering run...", "info");
+    try {
+      var d = await request("/run-tests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      showMsg(ui.triggerMsg, "Run " + d.runId + "  status: " + d.status, "ok");
+      markStep(6);
+      await loadRunningList();
+      await loadHistory(true);
+      await loadHealth();
+    } catch (e) { showMsg(ui.triggerMsg, "Trigger error: " + e.message, "err"); }
+  }
 
-    ui.runBtn.addEventListener("click", triggerRun);
-    ui.healthBtn.addEventListener("click", loadHealth);
-    ui.presetSelect.addEventListener("change", renderReleaseSnippets);
-    [ui.mode, ui.waitForCompletion, ui.waitTimeout].forEach((node) => node.addEventListener("change", renderReleaseSnippets));
-
-    ui.copyCurlBtn.addEventListener("click", () => copyText(ui.curlSnippet.textContent, "Curl snippet"));
-    ui.copyPythonBtn.addEventListener("click", () => copyText(ui.pythonSnippet.textContent, "Python snippet"));
-
-    ui.saveSettings.addEventListener("click", saveSettingsAction);
-    ui.resetSettings.addEventListener("click", resetSettingsAction);
-
-    [ui.historyProjectFilter, ui.statusFilter, ui.modeFilter, ui.sortFilter, ui.limit].forEach((node) => {
-      node.addEventListener("change", () => {
-        state.offset = 0;
-        loadHistory();
-      });
-    });
-
-    loadSettings();
-    applySettingsToUi();
-    loadProjects();
+  function saveSettingsAction() {
+    state.settings.baseUrl         = ui.baseUrl.value.trim() || "http://localhost:8080";
+    state.settings.token           = ui.token.value.trim();
+    state.settings.pollInterval    = Math.max(1000, Number(ui.pollInterval.value || 2500));
+    state.settings.defaultPageSize = Math.min(100, Math.max(5, Number(ui.defaultPageSize.value || 25)));
+    state.settings.theme           = document.documentElement.dataset.theme || "light";
+    persistSettings();
+    showMsg(ui.settingsMsg, "Settings saved. Connecting...", "info");
     loadHealth();
+    loadProjects();
     loadRunningList();
-    loadHistory();
-    renderReleaseSnippets();
-  </script>
+    loadHistory(true);
+    renderSnippets();
+  }
+
+  function resetSettingsAction() {
+    state.settings = { baseUrl: "http://localhost:8080", token: "", pollInterval: 2500, defaultPageSize: 25, currentProjectId: "default", theme: "light" };
+    applySettingsToForm();
+    persistSettings();
+    showMsg(ui.settingsMsg, "Settings reset to defaults.", "info");
+  }
+
+  function handleFileAutofill(fileInput, nameInput) {
+    var f = fileInput.files && fileInput.files[0];
+    if (f && !nameInput.value.trim()) nameInput.value = f.name.replace(/\.json$/i, "");
+  }
+
+  async function copyText(text, label) {
+    try { await navigator.clipboard.writeText(text); showMsg(ui.snippetMsg, label + " copied to clipboard.", "ok"); }
+    catch (e) { showMsg(ui.snippetMsg, "Copy failed - select text manually.", "err"); }
+  }
+
+  ui.snippetTabs.addEventListener("click", function(e) {
+    var btn = e.target.closest(".stab");
+    if (!btn) return;
+    for (const t of ui.snippetTabs.querySelectorAll(".stab")) t.classList.remove("active");
+    btn.classList.add("active");
+    for (const p of document.querySelectorAll(".snippet-pane")) p.classList.remove("active");
+    var pane = document.getElementById(btn.dataset.pane);
+    if (pane) pane.classList.add("active");
+  });
+
+  for (const b of ui.menuBtns) b.addEventListener("click", function() { setPage(this.dataset.page); });
+  ui.themeToggle.addEventListener("click", function() {
+    var next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = next;
+    state.settings.theme = next;
+    persistSettings();
+  });
+  ui.globalReloadBtn.addEventListener("click", async function() {
+    showMsg(ui.settingsMsg, "Reloading data...", "info");
+    try {
+      await loadHealth();
+      await loadProjects();
+      await loadRunningList();
+      await loadHistory(true);
+      showMsg(ui.settingsMsg, "Reload complete.", "ok");
+    } catch (e) {
+      showMsg(ui.settingsMsg, "Reload error: " + e.message, "err");
+    }
+  });
+  ui.globalProjectSelect.addEventListener("change", function()  { setProjectView(this.value || "default"); });
+  ui.triggerProjectSelect.addEventListener("change", function() { setProjectView(this.value || "default"); renderSnippets(); });
+  ui.presetSelect.addEventListener("change", function() { updatePresetMeta(); renderSnippets(); });
+  [ui.mode, ui.waitForCompletion, ui.waitTimeout].forEach(function(n) { n.addEventListener("change", renderSnippets); });
+  ui.homeRefreshBtn.addEventListener("click",  loadRunningList);
+  ui.historyRefresh.addEventListener("click",  function() { loadHistory(true); });
+  [ui.statusFilter, ui.modeFilter, ui.sortFilter, ui.limit].forEach(function(n) { n.addEventListener("change", function() { loadHistory(true); }); });
+  ui.historyProjectFilter.addEventListener("change", function() {
+    if (this.value) {
+      setProjectView(this.value);
+      return;
+    }
+    loadHistory(true);
+  });
+  ui.loadMoreBtn.addEventListener("click", function() { loadHistory(false); });
+  ui.createProjectBtn.addEventListener("click",    createProjectAction);
+  ui.refreshProjectsBtn.addEventListener("click",  async function() {
+    showMsg(ui.projectMsg, "Refreshing projects...", "info");
+    try {
+      await loadProjects();
+      showMsg(ui.projectMsg, "Projects refreshed.", "ok");
+    } catch (e) {
+      showMsg(ui.projectMsg, "Refresh error: " + e.message, "err");
+    }
+  });
+  ui.clearCollectionEditBtn.addEventListener("click", function() { clearAssetReplace("collection"); });
+  ui.clearEnvironmentEditBtn.addEventListener("click", function() { clearAssetReplace("environment"); });
+  ui.uploadCollectionBtn.addEventListener("click",  function() { uploadAsset("collection"); });
+  ui.uploadEnvironmentBtn.addEventListener("click", function() { uploadAsset("environment"); });
+  ui.collectionFileInput.addEventListener("change",  function() { handleFileAutofill(ui.collectionFileInput,  ui.collectionAssetName); });
+  ui.environmentFileInput.addEventListener("change", function() { handleFileAutofill(ui.environmentFileInput, ui.environmentAssetName); });
+  ui.collectionListBody.addEventListener("click", function(e) {
+    var btn = e.target.closest("button[data-action='replace'][data-type='collection']");
+    if (!btn) return;
+    var asset = state.collections.find(function(item) { return item.assetId === btn.dataset.assetId; });
+    if (asset) startAssetReplace("collection", asset);
+  });
+  ui.environmentListBody.addEventListener("click", function(e) {
+    var btn = e.target.closest("button[data-action='replace'][data-type='environment']");
+    if (!btn) return;
+    var asset = state.environments.find(function(item) { return item.assetId === btn.dataset.assetId; });
+    if (asset) startAssetReplace("environment", asset);
+  });
+  ui.createPresetBtn.addEventListener("click", createPresetAction);
+  ui.runBtn.addEventListener("click",         triggerRun);
+  ui.healthBtn.addEventListener("click",      async function() {
+    showMsg(ui.triggerMsg, "Checking health...", "info");
+    await loadHealth();
+    showMsg(ui.triggerMsg, "Health check completed.", "ok");
+  });
+  ui.saveSettings.addEventListener("click",   saveSettingsAction);
+  ui.resetSettings.addEventListener("click",  resetSettingsAction);
+  ui.copyCurlBtn.addEventListener("click",       function() { copyText(ui.curlSnippet.textContent,        "Curl snippet"); });
+  ui.copyPythonBtn.addEventListener("click",     function() { copyText(ui.pythonSnippet.textContent,      "Python snippet"); });
+  ui.copyPostRequestBtn.addEventListener("click",function() { copyText(ui.postRequestSnippet.textContent, "POST request"); });
+
+  loadSettings();
+  applySettingsToForm();
+  updateWizard();
+  loadHealth();
+  loadProjects();
+  loadRunningList();
+  loadHistory(true);
+  renderSnippets();
+  syncAssetEditUi();
+</script>
 </body>
 </html>

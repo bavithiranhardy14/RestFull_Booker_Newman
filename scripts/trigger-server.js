@@ -199,13 +199,7 @@ function projectToResponse(project) {
 }
 
 function createProject(payload) {
-  const projectId = normalizeProjectId(payload.projectId);
-  if (!isValidProjectId(projectId)) {
-    throw new Error("projectId must match /^[a-z0-9][a-z0-9_-]{1,63}$/");
-  }
-  if (projectExists(projectId)) {
-    throw new Error("Project already exists");
-  }
+  const projectId = generateUniqueProjectId(payload.name || payload.projectId);
 
   const createdAt = new Date().toISOString();
   const baseDir = makeProjectBaseDir(projectId);
@@ -526,6 +520,65 @@ function normalizeEntityValue(value, fallbackPrefix) {
   return normalized;
 }
 
+function toIdBase(value, fallbackPrefix) {
+  const fallback = String(fallbackPrefix || "item")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "item";
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const source = normalized || fallback;
+  const maxBaseLength = 42;
+  const trimmed = source.slice(0, maxBaseLength).replace(/-+$/g, "");
+  if (trimmed.length >= 2) {
+    return trimmed;
+  }
+
+  return `${fallback}-id`.slice(0, maxBaseLength);
+}
+
+function makeGeneratedId(prefix, seed) {
+  const base = toIdBase(seed, prefix);
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  return normalizeEntityValue(`${base}-${suffix}`, prefix);
+}
+
+function generateUniqueProjectId(seed) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const candidate = makeGeneratedId("project", seed);
+    if (!projectExists(candidate)) {
+      return candidate;
+    }
+  }
+
+  return normalizeEntityValue(makeEntityId("project"), "project");
+}
+
+function generateUniqueAssetId(projectId, assetType, seed) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const candidate = makeGeneratedId(assetType, seed);
+    if (!getProjectAsset(projectId, assetType, candidate)) {
+      return candidate;
+    }
+  }
+
+  return normalizeEntityValue(makeEntityId(assetType), assetType);
+}
+
+function generateUniquePresetId(projectId, seed) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const candidate = makeGeneratedId("preset", seed);
+    if (!getProjectPreset(projectId, candidate)) {
+      return candidate;
+    }
+  }
+
+  return normalizeEntityValue(makeEntityId("preset"), "preset");
+}
+
 function stringifyJsonContent(payload) {
   if (typeof payload.content === "string" && payload.content.trim()) {
     JSON.parse(payload.content);
@@ -594,13 +647,24 @@ function saveProjectAsset(projectId, assetType, payload) {
   }
 
   const normalizedType = normalizeAssetType(assetType);
-  const assetId = normalizeEntityValue(payload.assetId || payload.id, normalizedType);
+  const requestedAssetId = payload.assetId ? normalizeEntityValue(payload.assetId, normalizedType) : "";
+  const existingAsset = requestedAssetId ? getProjectAsset(project.projectId, normalizedType, requestedAssetId) : null;
+  const assetId = existingAsset
+    ? existingAsset.assetId
+    : (requestedAssetId || generateUniqueAssetId(project.projectId, normalizedType, payload.name || payload.fileName));
   const content = stringifyJsonContent(payload);
-  const fileName = String(payload.fileName || assetTypeDefaultFileName(normalizedType, assetId)).trim();
+  const providedFileName = String(payload.fileName || "").trim();
+  let fileName;
+  if (existingAsset) {
+    fileName = existingAsset.fileName;
+  } else if (providedFileName) {
+    fileName = `${assetId}-${providedFileName.replace(/[^a-zA-Z0-9._-]+/g, "-")}`;
+  } else {
+    fileName = assetTypeDefaultFileName(normalizedType, assetId);
+  }
   const relativeFilePath = path.join("postman", assetTypeFolderName(normalizedType), fileName);
   const absoluteFilePath = path.join(project.baseDir, relativeFilePath);
   const now = new Date().toISOString();
-  const existing = getProjectAsset(project.projectId, normalizedType, assetId);
 
   ensureProjectStructure(project.baseDir);
   fs.writeFileSync(absoluteFilePath, content, "utf8");
@@ -619,7 +683,7 @@ function saveProjectAsset(projectId, assetType, payload) {
       fileName,
       relativeFilePath,
       content,
-      existing?.createdAt || now,
+      now,
       now
     ]
   );
@@ -680,13 +744,23 @@ function getDefaultPreset(projectId) {
   return presets.find((item) => item.isDefault) || presets[0] || null;
 }
 
+function ensureAssetFileFromStore(project, asset) {
+  const absolutePath = path.join(project.baseDir, asset.filePath);
+  if (!fs.existsSync(absolutePath)) {
+    ensureDir(path.dirname(absolutePath));
+    fs.writeFileSync(absolutePath, asset.content, "utf8");
+  }
+
+  return absolutePath;
+}
+
 function saveProjectPreset(projectId, payload) {
   const project = getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
   }
 
-  const presetId = normalizeEntityValue(payload.presetId || payload.id, "preset");
+  const presetId = generateUniquePresetId(project.projectId, payload.name);
   const collectionAssetId = normalizeEntityValue(payload.collectionAssetId, "collection");
   const environmentAssetId = normalizeEntityValue(payload.environmentAssetId, "environment");
   const collectionAsset = getProjectAsset(project.projectId, "collection", collectionAssetId);
@@ -700,8 +774,7 @@ function saveProjectPreset(projectId, payload) {
   }
 
   const now = new Date().toISOString();
-  const existing = getProjectPreset(project.projectId, presetId);
-  const shouldBeDefault = payload.isDefault === true || (!existing && listProjectPresets(project.projectId).length === 0);
+  const shouldBeDefault = payload.isDefault === true || listProjectPresets(project.projectId).length === 0;
 
   if (shouldBeDefault) {
     db.run("UPDATE project_presets SET is_default = 0 WHERE project_id = ?", [project.projectId]);
@@ -720,7 +793,7 @@ function saveProjectPreset(projectId, payload) {
       collectionAssetId,
       environmentAssetId,
       shouldBeDefault ? 1 : 0,
-      existing?.createdAt || now,
+      now,
       now
     ]
   );
@@ -751,8 +824,8 @@ function resolveRunConfiguration(projectId, body) {
       presetId: preset.presetId,
       collectionAssetId: collectionAsset.assetId,
       environmentAssetId: environmentAsset.assetId,
-      collectionAbsolutePath: path.join(project.baseDir, collectionAsset.filePath),
-      environmentAbsolutePath: path.join(project.baseDir, environmentAsset.filePath)
+      collectionAbsolutePath: ensureAssetFileFromStore(project, collectionAsset),
+      environmentAbsolutePath: ensureAssetFileFromStore(project, environmentAsset)
     };
   }
 
@@ -770,8 +843,8 @@ function resolveRunConfiguration(projectId, body) {
       presetId: null,
       collectionAssetId: collectionAsset.assetId,
       environmentAssetId: environmentAsset.assetId,
-      collectionAbsolutePath: path.join(project.baseDir, collectionAsset.filePath),
-      environmentAbsolutePath: path.join(project.baseDir, environmentAsset.filePath)
+      collectionAbsolutePath: ensureAssetFileFromStore(project, collectionAsset),
+      environmentAbsolutePath: ensureAssetFileFromStore(project, environmentAsset)
     };
   }
 
@@ -962,10 +1035,10 @@ function startRun(mode, projectId, selection) {
   const environmentAbsolutePath = selection.environmentAbsolutePath;
 
   if (!fs.existsSync(collectionAbsolutePath)) {
-    throw new Error(`Collection file not found: ${project.collectionPath}`);
+    throw new Error(`Collection file not found for project ${project.projectId}: ${collectionAbsolutePath}`);
   }
   if (!fs.existsSync(environmentAbsolutePath)) {
-    throw new Error(`Environment file not found: ${project.environmentPath}`);
+    throw new Error(`Environment file not found for project ${project.projectId}: ${environmentAbsolutePath}`);
   }
 
   const runId = makeRunId();
@@ -1307,10 +1380,6 @@ async function handleCreateProject(req, res) {
   }
 
   const body = await parseBody(req);
-  if (!body.projectId) {
-    sendJson(res, 400, { error: "projectId is required" });
-    return;
-  }
 
   const project = createProject(body);
   sendJson(res, 201, {
